@@ -34,6 +34,7 @@ model Bookmark {
   faviconPath      String?
   faviconCheckedAt DateTime? // set on every refresh attempt (success or fail) so failures aren't retried forever
   coverImagePath   String?
+  coverImageCheckedAt DateTime? // set on every refresh attempt (success or fail), same reasoning as faviconCheckedAt
   collectionId     String?
   deletedAt        DateTime? // soft-delete: set instead of removing the row; excluded from all normal queries
   isBroken         Boolean   @default(false)

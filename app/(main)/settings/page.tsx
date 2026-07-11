@@ -55,6 +55,7 @@ export default function SettingsPage() {
             <ImportSection />
             <ExportSection />
             <FaviconRefreshSection />
+            <CoverRefreshSection />
             <BrokenLinkSection />
             <TrashSection />
           </>
@@ -291,6 +292,81 @@ function FaviconRefreshSection() {
       {progress && (
         <p className="text-xs text-[var(--text-faint)]">
           Checked {progress.done} of {progress.total} — {progress.updated} favicon{progress.updated === 1 ? "" : "s"}{" "}
+          found{!running && progress.done >= progress.total ? " (done)" : ""}
+        </p>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+function CoverRefreshSection() {
+  const [missingCount, setMissingCount] = useState<number | null>(null);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number; updated: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<{ count: number }>("/api/bookmarks/refresh-covers").then((r) => setMissingCount(r.count));
+  }, []);
+
+  async function run() {
+    setRunning(true);
+    setError(null);
+    const startTotal = missingCount ?? 0;
+    let done = 0;
+    let updatedTotal = 0;
+    setProgress({ done: 0, total: startTotal, updated: 0 });
+    try {
+      for (;;) {
+        const r = await api.post<{ processed: number; updated: number; remaining: number }>(
+          "/api/bookmarks/refresh-covers",
+          { limit: 20 }
+        );
+        done += r.processed;
+        updatedTotal += r.updated;
+        setProgress({ done, total: done + r.remaining, updated: updatedTotal });
+        setMissingCount(r.remaining);
+        if (r.remaining === 0 || r.processed === 0) break;
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to refresh cover images");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <Card title="Cover images">
+      <p>
+        Bookmarks without a cover image show a plain color block in Cards and Moodboard view. This fetches each
+        bookmark&apos;s og:image from its live URL, no manual upload needed.
+      </p>
+
+      {missingCount === null ? (
+        <p className="text-xs text-[var(--text-faint)]">Checking…</p>
+      ) : missingCount === 0 && !progress ? (
+        <p className="text-xs text-green-400">All bookmarks already have a cover image.</p>
+      ) : (
+        <>
+          {!running && missingCount > 0 && (
+            <p className="text-xs text-[var(--text-faint)]">
+              {missingCount} bookmark{missingCount === 1 ? "" : "s"} missing a cover image.
+            </p>
+          )}
+          <button
+            onClick={run}
+            disabled={running || missingCount === 0}
+            className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+          >
+            {running ? "Refreshing…" : "Refresh missing cover images"}
+          </button>
+        </>
+      )}
+
+      {progress && (
+        <p className="text-xs text-[var(--text-faint)]">
+          Checked {progress.done} of {progress.total} — {progress.updated} cover image{progress.updated === 1 ? "" : "s"}{" "}
           found{!running && progress.done >= progress.total ? " (done)" : ""}
         </p>
       )}
