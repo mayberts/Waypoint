@@ -1,6 +1,11 @@
 import dns from "node:dns/promises";
+import { Agent as UndiciAgent } from "undici";
 
 const DEFAULT_TIMEOUT_MS = 8000;
+
+// Reused across requests (an Agent owns a connection pool) — only used when
+// a caller opts into allowInsecureTls.
+const insecureTlsDispatcher = new UndiciAgent({ connect: { rejectUnauthorized: false } });
 
 function ipv4ToInt(ip: string): number | null {
   const parts = ip.split(".").map(Number);
@@ -67,6 +72,13 @@ export interface SafeFetchOptions {
   // need to reach those addresses. Fetches that parse or store body content
   // (metadata/favicon fetch) must leave this off.
   allowPrivate?: boolean;
+  // Skip TLS certificate verification. Self-hosted admin UIs (a UniFi
+  // controller, a NAS, etc.) very commonly serve a self-signed certificate,
+  // which a browser accepts with a one-time click-through but Node's fetch
+  // rejects outright. Same reasoning as allowPrivate: link checks only read
+  // a status code, so there's no content to be tricked by. Leave this off
+  // for fetches that parse or store body content.
+  allowInsecureTls?: boolean;
 }
 
 /**
@@ -91,6 +103,9 @@ export async function safeFetch(url: string, init?: RequestInit, options?: SafeF
         "User-Agent": "Waypoint-Bot/1.0 (+self-hosted bookmark manager)",
         ...init?.headers,
       },
+      // `dispatcher` is a Node/undici-specific fetch extension not present in
+      // the DOM RequestInit typings that this project's tsconfig uses.
+      ...(options?.allowInsecureTls ? ({ dispatcher: insecureTlsDispatcher } as RequestInit) : {}),
     });
     // fetch() follows redirects internally; re-validate the final host so a
     // redirect chain can't be used to reach a private address.

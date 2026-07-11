@@ -2,12 +2,13 @@ import { safeFetch } from "./safe-fetch";
 
 /** Checks whether a URL still resolves to a healthy (2xx) response, following redirects. */
 export async function checkLinkAlive(url: string): Promise<boolean> {
-  // Private/LAN addresses are allowed here (unlike metadata/favicon fetch):
-  // Waypoint is single-user and auth-gated, and its owner routinely
-  // bookmarks their own internal services (a NAS UI, Radarr, a router), so
-  // liveness checks need to reach those. Only the status code is read — the
-  // body is always discarded — so there's no content to parse or store.
-  const opts = { allowPrivate: true };
+  // Private/LAN addresses and self-signed certificates are both allowed here
+  // (unlike metadata/favicon fetch): Waypoint is single-user and auth-gated,
+  // and its owner routinely bookmarks their own internal services (a NAS UI,
+  // Radarr, a UniFi controller — commonly self-signed) that a browser
+  // accepts with a one-time click-through. Only the status code is read —
+  // the body is always discarded — so there's no content to parse or store.
+  const opts = { allowPrivate: true, allowInsecureTls: true };
   try {
     const res = await safeFetch(url, { method: "HEAD" }, opts);
     await res.body?.cancel().catch(() => {});
