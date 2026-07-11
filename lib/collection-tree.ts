@@ -41,3 +41,8 @@ export function descendantIds(node: TreeNode): Set<string> {
   walk(node);
   return out;
 }
+
+/** A collection's `icon` is either an emoji string or an uploaded /uploads/... image path. */
+export function isIconImagePath(icon: string | null | undefined): icon is string {
+  return !!icon && icon.startsWith("/uploads/");
+}

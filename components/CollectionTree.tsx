@@ -15,8 +15,9 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
-import { buildTree, flattenTree, descendantIds, type TreeNode } from "@/lib/collection-tree";
+import { buildTree, flattenTree, descendantIds, isIconImagePath, type TreeNode } from "@/lib/collection-tree";
 import { useAppData } from "./providers";
+import { IconPicker } from "./IconPicker";
 
 type DropZone = "before" | "nest" | "after";
 
@@ -153,6 +154,7 @@ export function CollectionTree({ selectedId }: { selectedId?: string }) {
             onCancelEdit={() => setEditingId(null)}
             onAddChild={() => createChild(node.id)}
             onDelete={() => removeCollection(node.id)}
+            onIconChanged={refreshCollections}
           />
         ))}
       </DndContext>
@@ -173,6 +175,7 @@ function Row({
   onCancelEdit,
   onAddChild,
   onDelete,
+  onIconChanged,
 }: {
   node: TreeNode;
   selected: boolean;
@@ -186,9 +189,11 @@ function Row({
   onCancelEdit: () => void;
   onAddChild: () => void;
   onDelete: () => void;
+  onIconChanged: () => void;
 }) {
   const { attributes, listeners, setNodeRef: setDragRef } = useDraggable({ id: node.id });
   const { setNodeRef: setDropRef } = useDroppable({ id: node.id });
+  const [iconAnchor, setIconAnchor] = useState<{ top: number; left: number; bottom: number } | null>(null);
 
   return (
     <div
@@ -218,7 +223,31 @@ function Row({
         ⠿
       </span>
 
-      <span className="shrink-0">{node.icon || "📁"}</span>
+      <span className="relative shrink-0">
+        <button
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setIconAnchor((current) => (current ? null : { top: rect.top, left: rect.left, bottom: rect.bottom }));
+          }}
+          className="flex items-center justify-center h-4 w-4 rounded hover:ring-1 hover:ring-neutral-600"
+          title="Change icon"
+        >
+          {isIconImagePath(node.icon) ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={node.icon} alt="" className="h-4 w-4 rounded object-cover" />
+          ) : (
+            node.icon || "📁"
+          )}
+        </button>
+        {iconAnchor && (
+          <IconPicker
+            collectionId={node.id}
+            anchorRect={iconAnchor}
+            onChanged={onIconChanged}
+            onClose={() => setIconAnchor(null)}
+          />
+        )}
+      </span>
 
       {editing ? (
         <input

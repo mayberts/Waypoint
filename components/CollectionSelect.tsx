@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { buildTree, flattenTree } from "@/lib/collection-tree";
+import { buildTree, flattenTree, isIconImagePath } from "@/lib/collection-tree";
 import { useAppData } from "./providers";
 
 export function CollectionSelect({
@@ -23,7 +23,8 @@ export function CollectionSelect({
       <option value="">Unsorted</option>
       {options.map((c) => (
         <option key={c.id} value={c.id}>
-          {"  ".repeat(c.depth)}
+          {"  ".repeat(c.depth)}
+          {!isIconImagePath(c.icon) && c.icon ? `${c.icon} ` : ""}
           {c.name}
         </option>
       ))}
