@@ -4,16 +4,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "@/lib/api-client";
 import type { CollectionDTO } from "@/lib/types";
-
-const EMOJI_OPTIONS = [
-  "📁", "💼", "📊", "📈", "💡", "🗂️", "✅", "🗓️",
-  "💻", "🖥️", "⌨️", "🔧", "🛠️", "🐛", "🔌", "📦",
-  "📚", "🎓", "📖", "✏️", "🔬", "🧪", "🗞️", "📰",
-  "🎬", "🎮", "🎵", "🎨", "📷", "📺", "🎧", "🎭",
-  "✈️", "🏠", "🗺️", "🏖️", "🚗", "🍔", "☕", "🛒",
-  "🌱", "🌍", "🔥", "⭐", "❤️", "🔖", "🎯", "🏆",
-  "🎁", "🔒", "🚀", "🧩", "💰", "💳", "🐾", "⚽",
-];
+import { EMOJI_CATEGORIES } from "@/lib/emoji-categories";
 
 export function IconPicker({
   collectionId,
@@ -58,8 +49,9 @@ export function IconPicker({
     }
   }
 
-  const width = 264;
+  const width = 280;
   const left = Math.min(anchorRect.left, window.innerWidth - width - 8);
+  const maxHeight = Math.min(420, window.innerHeight - anchorRect.bottom - 16);
 
   return createPortal(
     <>
@@ -67,24 +59,33 @@ export function IconPicker({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{ top: anchorRect.bottom + 4, left, width }}
-        className="fixed z-50 rounded-lg border border-neutral-800 bg-neutral-950 p-2.5 shadow-xl"
+        className="fixed z-50 rounded-lg border border-neutral-800 bg-neutral-950 shadow-xl flex flex-col"
       >
-        <div className="grid grid-cols-8 gap-0.5">
-          {EMOJI_OPTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => pick(emoji)}
-              className="text-base leading-none rounded p-1.5 hover:bg-neutral-800"
-              title={emoji}
-            >
-              {emoji}
-            </button>
+        <div className="overflow-y-auto p-2.5" style={{ maxHeight }}>
+          {EMOJI_CATEGORIES.map((category) => (
+            <div key={category.label} className="mb-2 last:mb-0">
+              <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                {category.label}
+              </div>
+              <div className="grid grid-cols-8 gap-0.5">
+                {category.emoji.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => pick(emoji)}
+                    className="text-base leading-none rounded p-1.5 hover:bg-neutral-800"
+                    title={emoji}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
 
-        {error && <p className="text-xs text-red-400 pt-2">{error}</p>}
+        {error && <p className="text-xs text-red-400 px-2.5 pt-2">{error}</p>}
 
-        <div className="flex items-center justify-between pt-2 mt-2 border-t border-neutral-800">
+        <div className="flex items-center justify-between px-2.5 py-2 border-t border-neutral-800 shrink-0">
           <button
             onClick={() => fileInput.current?.click()}
             disabled={uploading}
