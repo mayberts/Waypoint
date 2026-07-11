@@ -4,7 +4,6 @@ import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "@/lib/api-client";
 import type { CollectionDTO } from "@/lib/types";
-import { EMOJI_CATEGORIES } from "@/lib/emoji-categories";
 import { useAppData } from "./providers";
 
 export function IconPicker({
@@ -49,16 +48,7 @@ export function IconPicker({
       .filter((category) => category.icons.length > 0);
   }, [customCategories, q]);
 
-  const filteredEmojiCategories = useMemo(() => {
-    if (!q) return EMOJI_CATEGORIES;
-    return EMOJI_CATEGORIES.map((category) => {
-      const categoryMatches = category.label.toLowerCase().includes(q);
-      const emoji = categoryMatches ? category.emoji : category.emoji.filter((e) => e === query.trim());
-      return { ...category, emoji };
-    }).filter((category) => category.emoji.length > 0);
-  }, [q, query]);
-
-  const noResults = q.length > 0 && filteredCustomCategories.length === 0 && filteredEmojiCategories.length === 0;
+  const noResults = q.length > 0 && filteredCustomCategories.length === 0;
 
   async function pick(icon: string) {
     const updated = await api.patch<CollectionDTO>(`/api/collections/${collectionId}`, { icon });
@@ -132,30 +122,6 @@ export function IconPicker({
               </div>
             </div>
           ))}
-          {filteredCustomCategories.length > 0 && filteredEmojiCategories.length > 0 && (
-            <div className="border-t border-neutral-800 my-2" />
-          )}
-
-          {filteredEmojiCategories.map((category) => (
-            <div key={category.label} className="mb-2 last:mb-0">
-              <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-                {category.label}
-              </div>
-              <div className="grid grid-cols-8 gap-0.5">
-                {category.emoji.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => pick(emoji)}
-                    className="text-base leading-none rounded p-1.5 hover:bg-neutral-800"
-                    title={emoji}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-
           {noResults && <p className="px-1 py-4 text-center text-xs text-neutral-500">No icons found.</p>}
         </div>
 
