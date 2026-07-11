@@ -26,7 +26,7 @@ export function BookmarkMoodboard({
             onChange={() => onToggleSelect(b.id)}
             onClick={(e) => e.stopPropagation()}
             className={`absolute top-2 left-2 z-10 h-4 w-4 rounded cursor-pointer accent-[var(--accent)] ${
-              isSelected ? "" : "opacity-0 group-hover:opacity-100"
+              isSelected ? "" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
             }`}
           />
         );
@@ -67,7 +67,7 @@ export function BookmarkMoodboard({
                 </div>
                 <button
                   onClick={() => onEdit(b)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
+                  className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
                 >
                   Edit
                 </button>
@@ -106,7 +106,7 @@ export function BookmarkMoodboard({
                 </div>
                 <button
                   onClick={() => onEdit(b)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
+                  className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
                 >
                   Edit
                 </button>

@@ -106,20 +106,23 @@ export function BookmarkGrid({
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      <div className="flex items-center justify-between px-6 pt-6 pb-4">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)] min-w-0 truncate">{title}</h1>
         <div className="flex items-center gap-2">
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
             onClick={() => setAdding(true)}
-            className="px-3 py-1.5 text-sm rounded-md bg-[var(--accent-strong)] text-white hover:bg-[var(--accent)]"
+            className="px-3 py-1.5 text-sm rounded-md bg-[var(--accent-strong)] text-white hover:bg-[var(--accent)] whitespace-nowrap"
           >
             + Add bookmark
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 flex flex-col" style={gridPatternStyle(appearance.gridPattern)}>
+      <div
+        className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col sm:px-6 sm:pb-6"
+        style={gridPatternStyle(appearance.gridPattern)}
+      >
         <div className="flex-1">
           {loading ? (
             <p className="text-sm text-[var(--text-faint)]">Loading…</p>

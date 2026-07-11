@@ -23,15 +23,15 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<TabId>("connect");
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6 max-w-2xl flex flex-col gap-6">
+    <div className="flex-1 overflow-y-auto px-4 py-4 max-w-2xl flex flex-col gap-6 sm:px-6 sm:py-6">
       <h1 className="text-lg font-semibold text-[var(--text-primary)]">Settings</h1>
 
-      <div className="flex gap-1 border-b border-[var(--border)] sticky top-0 bg-[var(--surface-1)] z-10">
+      <div className="flex gap-1 shrink-0 overflow-x-auto border-b border-[var(--border)] sticky top-0 bg-[var(--surface-1)] z-10">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${
+            className={`px-3 py-2 text-sm border-b-2 -mb-px whitespace-nowrap transition-colors ${
               tab === t.id
                 ? "border-[var(--accent)] text-[var(--text-primary)]"
                 : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"

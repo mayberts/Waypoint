@@ -61,7 +61,7 @@ export default function TrashPage() {
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">Trash</h1>
         {bookmarks.length > 0 && (
           <button
@@ -73,7 +73,7 @@ export default function TrashPage() {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
         {error && <p className="text-sm text-red-400 pb-3">{error}</p>}
         {loading ? (
           <p className="text-sm text-[var(--text-faint)]">Loading…</p>
@@ -84,13 +84,17 @@ export default function TrashPage() {
             {bookmarks.map((b) => (
               <div
                 key={b.id}
-                className="group flex items-center gap-3 py-3 border-b border-[var(--border-a70)] hover:bg-[var(--surface-1-a60)]"
+                className="group flex items-center gap-2 flex-wrap py-3 border-b border-[var(--border-a70)] hover:bg-[var(--surface-1-a60)] sm:gap-3 sm:flex-nowrap"
               >
                 <Favicon faviconPath={b.faviconPath} domain={b.domain} size={24} />
                 <span className="min-w-0 truncate text-sm font-medium text-[var(--text-body)]">{b.title}</span>
-                {b.domain && <span className="shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px]">{b.domain}</span>}
-                <div className="flex-1" />
-                <div className="flex items-center gap-2 shrink-0">
+                {b.domain && (
+                  <span className="hidden shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px] sm:block">
+                    {b.domain}
+                  </span>
+                )}
+                <div className="flex-1 basis-0 min-w-0 hidden sm:block" />
+                <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
                   <button
                     onClick={() => restore(b.id)}
                     className="text-xs px-2 py-1 rounded-md border border-[var(--border-strong)] text-[var(--text-body)] hover:bg-[var(--surface-2)]"

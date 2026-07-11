@@ -57,10 +57,10 @@ export function BulkActionBar({
   }
 
   return (
-    <div className="sticky bottom-4 z-20 mx-6 flex items-center gap-3 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-0)] px-4 py-2.5 shadow-lg">
+    <div className="sticky bottom-3 z-20 mx-3 flex flex-wrap items-center gap-2.5 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-0)] px-3 py-2.5 shadow-lg sm:bottom-4 sm:mx-6 sm:gap-3 sm:px-4">
       <span className="text-sm font-medium text-[var(--text-primary)] shrink-0">{count} selected</span>
 
-      <div className="w-44 shrink-0">
+      <div className="w-36 shrink-0 sm:w-44">
         <CollectionSelect value={null} onChange={moveTo} />
       </div>
 
@@ -70,7 +70,7 @@ export function BulkActionBar({
           onChange={(e) => setTagValue(e.target.value)}
           placeholder="Add tag…"
           disabled={busy}
-          className="w-28 rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)] disabled:opacity-50"
+          className="w-24 rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)] disabled:opacity-50 sm:w-28"
         />
         <button
           type="submit"
@@ -81,7 +81,7 @@ export function BulkActionBar({
         </button>
       </form>
 
-      <div className="flex-1" />
+      <div className="flex-1 basis-0 min-w-0 hidden sm:block" />
 
       <button
         onClick={deleteSelected}

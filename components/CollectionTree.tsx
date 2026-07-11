@@ -338,7 +338,7 @@ function Row({
         <span className="text-xs text-[var(--text-faint)] tabular-nums shrink-0">{node._count.bookmarks}</span>
       )}
 
-      <div className="hidden group-hover:flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1 shrink-0 md:hidden md:group-hover:flex">
         <button onClick={onAddChild} title="Add subfolder" className="text-[var(--text-faint)] hover:text-[var(--text-secondary)] px-0.5">
           +
         </button>

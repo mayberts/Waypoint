@@ -27,7 +27,9 @@ export function BookmarkRow({
         type="checkbox"
         checked={selected}
         onChange={onToggleSelect}
-        className={`shrink-0 h-4 w-4 rounded cursor-pointer accent-[var(--accent)] ${selected ? "" : "opacity-0 group-hover:opacity-100"}`}
+        className={`shrink-0 h-4 w-4 rounded cursor-pointer accent-[var(--accent)] ${
+          selected ? "" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
+        }`}
       />
       <Favicon
         faviconPath={bookmark.faviconPath}
@@ -45,7 +47,9 @@ export function BookmarkRow({
       </a>
 
       {bookmark.domain && (
-        <span className="shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px]">{bookmark.domain}</span>
+        <span className="hidden shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px] sm:block">
+          {bookmark.domain}
+        </span>
       )}
 
       {bookmark.isBroken && (
@@ -71,7 +75,7 @@ export function BookmarkRow({
 
       <button
         onClick={onEdit}
-        className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
+        className="shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
       >
         Edit
       </button>
