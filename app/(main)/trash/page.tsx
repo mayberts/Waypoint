@@ -84,9 +84,9 @@ export default function TrashPage() {
             {bookmarks.map((b) => (
               <div
                 key={b.id}
-                className="group flex items-center gap-2.5 py-2.5 border-b border-neutral-800/70 hover:bg-neutral-900/60"
+                className="group flex items-center gap-3 py-3 border-b border-neutral-800/70 hover:bg-neutral-900/60"
               >
-                <Favicon faviconPath={b.faviconPath} domain={b.domain} size={18} />
+                <Favicon faviconPath={b.faviconPath} domain={b.domain} size={24} />
                 <span className="min-w-0 truncate text-sm font-medium text-neutral-300">{b.title}</span>
                 {b.domain && <span className="shrink-0 text-xs text-neutral-500 truncate max-w-[200px]">{b.domain}</span>}
                 <div className="flex-1" />

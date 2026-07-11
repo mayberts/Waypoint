@@ -14,11 +14,11 @@ export function BookmarkRow({
 }) {
   return (
     <div
-      className={`group flex items-center gap-2.5 border-b border-neutral-800/70 hover:bg-neutral-900/60 ${
-        dense ? "py-1.5" : "py-2.5"
+      className={`group flex items-center gap-3 border-b border-neutral-800/70 hover:bg-neutral-900/60 ${
+        dense ? "py-2" : "py-3"
       }`}
     >
-      <Favicon faviconPath={bookmark.faviconPath} domain={bookmark.domain} size={dense ? 14 : 18} />
+      <Favicon faviconPath={bookmark.faviconPath} domain={bookmark.domain} size={dense ? 18 : 24} />
 
       <a
         href={bookmark.url}
