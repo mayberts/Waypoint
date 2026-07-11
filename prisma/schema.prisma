@@ -31,11 +31,12 @@ model Bookmark {
   description    String?
   note           String?
   domain         String?
-  faviconPath    String?
-  coverImagePath String?
-  collectionId   String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  faviconPath      String?
+  faviconCheckedAt DateTime? // set on every refresh attempt (success or fail) so failures aren't retried forever
+  coverImagePath   String?
+  collectionId     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   collection Collection?   @relation(fields: [collectionId], references: [id], onDelete: SetNull)
   tags       BookmarkTag[]

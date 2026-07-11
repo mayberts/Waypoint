@@ -71,6 +71,10 @@ export async function createBookmark(input: CreateBookmarkInput) {
       domain,
       collectionId: collectionId ?? null,
       faviconPath,
+      // Creation already attempted a live favicon fetch above, so mark it
+      // checked — otherwise the bulk "refresh missing favicons" feature
+      // would redundantly re-attempt every freshly created bookmark.
+      faviconCheckedAt: new Date(),
       coverImagePath,
       tags: { create: tagIds.map((tagId) => ({ tagId })) },
     },
