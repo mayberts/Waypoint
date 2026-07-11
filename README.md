@@ -82,3 +82,7 @@ chmod +x update.sh   # once
 2. Run Postgres however you like and set `DATABASE_URL` in `.env` (see `docker-compose.yml` for the expected shape)
 3. `npm install && npx prisma migrate dev && npm run dev` → open `http://localhost:3000`
 4. Commit and push; deploy with `./update.sh` on the server
+
+## Third-party assets
+
+Some collection icons use [Twemoji](https://github.com/jdecked/twemoji) graphics, © Twitter, Inc and other contributors, licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
