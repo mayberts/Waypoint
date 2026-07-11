@@ -66,3 +66,15 @@ model Settings {
   id       Int    @id @default(1)
   apiToken String
 }
+
+// User-uploaded icons for the collection icon picker, organized into
+// categories (typically one per subfolder when bulk-uploading a folder).
+model IconAsset {
+  id        String   @id @default(cuid())
+  category  String
+  path      String
+  filename  String
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}

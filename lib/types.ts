@@ -15,6 +15,14 @@ export interface TagDTO {
   name: string;
 }
 
+export interface IconAssetDTO {
+  id: string;
+  category: string;
+  path: string;
+  filename: string;
+  createdAt: string;
+}
+
 export interface BookmarkDTO {
   id: string;
   url: string;

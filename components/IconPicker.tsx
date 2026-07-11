@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "@/lib/api-client";
 import type { CollectionDTO } from "@/lib/types";
 import { EMOJI_CATEGORIES } from "@/lib/emoji-categories";
+import { useAppData } from "./providers";
 
 export function IconPicker({
   collectionId,
@@ -17,12 +18,23 @@ export function IconPicker({
   onChanged: (icon: string | null) => void;
   onClose: () => void;
 }) {
+  const { iconAssets } = useAppData();
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function pick(emoji: string) {
-    const updated = await api.patch<CollectionDTO>(`/api/collections/${collectionId}`, { icon: emoji });
+  const customCategories = useMemo(() => {
+    const byCategory = new Map<string, { path: string; filename: string }[]>();
+    for (const asset of iconAssets) {
+      const list = byCategory.get(asset.category) ?? [];
+      list.push(asset);
+      byCategory.set(asset.category, list);
+    }
+    return Array.from(byCategory.entries()).map(([label, icons]) => ({ label, icons }));
+  }, [iconAssets]);
+
+  async function pick(icon: string) {
+    const updated = await api.patch<CollectionDTO>(`/api/collections/${collectionId}`, { icon });
     onChanged(updated.icon);
     onClose();
   }
@@ -62,6 +74,28 @@ export function IconPicker({
         className="fixed z-50 rounded-lg border border-neutral-800 bg-neutral-950 shadow-xl flex flex-col"
       >
         <div className="overflow-y-auto p-2.5" style={{ maxHeight }}>
+          {customCategories.map((category) => (
+            <div key={category.label} className="mb-2 last:mb-0">
+              <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                {category.label}
+              </div>
+              <div className="grid grid-cols-8 gap-0.5">
+                {category.icons.map((icon) => (
+                  <button
+                    key={icon.path}
+                    onClick={() => pick(icon.path)}
+                    className="flex items-center justify-center rounded p-1 hover:bg-neutral-800"
+                    title={icon.filename}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={icon.path} alt="" className="h-5 w-5 rounded object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {customCategories.length > 0 && <div className="border-t border-neutral-800 my-2" />}
+
           {EMOJI_CATEGORIES.map((category) => (
             <div key={category.label} className="mb-2 last:mb-0">
               <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">

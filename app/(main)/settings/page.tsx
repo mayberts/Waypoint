@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api-client";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
+import type { IconAssetDTO } from "@/lib/types";
 
 export default function SettingsPage() {
   return (
@@ -14,6 +15,7 @@ export default function SettingsPage() {
       <ExtensionSection />
       <ImportSection />
       <FaviconRefreshSection />
+      <IconLibrarySection />
     </div>
   );
 }
@@ -240,6 +242,150 @@ function FaviconRefreshSection() {
         </p>
       )}
       {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|ico)$/i;
+
+function categoryForFile(file: File): string {
+  const rel = file.webkitRelativePath || file.name;
+  const parts = rel.split("/");
+  if (parts.length >= 3) return parts[parts.length - 2]; // immediate parent subfolder
+  if (parts.length === 2) return parts[0]; // file sits directly in the chosen folder
+  return "Uploaded icons";
+}
+
+function IconLibrarySection() {
+  const { iconAssets, refreshIconAssets } = useAppData();
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // webkitdirectory/directory aren't in React's JSX typings for <input>, so
+    // set them imperatively — this is what actually enables folder selection.
+    folderInputRef.current?.setAttribute("webkitdirectory", "");
+    folderInputRef.current?.setAttribute("directory", "");
+  }, []);
+
+  const categories = useMemo(() => {
+    const byCategory = new Map<string, IconAssetDTO[]>();
+    for (const asset of iconAssets) {
+      const list = byCategory.get(asset.category) ?? [];
+      list.push(asset);
+      byCategory.set(asset.category, list);
+    }
+    return Array.from(byCategory.entries());
+  }, [iconAssets]);
+
+  async function handleFolderSelect(fileList: FileList) {
+    const files = Array.from(fileList).filter((f) => IMAGE_EXT.test(f.name));
+    if (files.length === 0) {
+      setError("No image files found in that folder.");
+      return;
+    }
+    setUploading(true);
+    setError(null);
+    let done = 0;
+    setProgress({ done: 0, total: files.length });
+    const CONCURRENCY = 4;
+    try {
+      for (let i = 0; i < files.length; i += CONCURRENCY) {
+        const batch = files.slice(i, i + CONCURRENCY);
+        await Promise.all(
+          batch.map(async (file) => {
+            const form = new FormData();
+            form.set("file", file);
+            form.set("category", categoryForFile(file));
+            try {
+              await api.upload("/api/icon-assets", form);
+            } catch {
+              // Not an image, too large, etc. — skip it and keep going.
+            } finally {
+              done++;
+              setProgress({ done, total: files.length });
+            }
+          })
+        );
+      }
+      await refreshIconAssets();
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function deleteCategory(category: string) {
+    if (!window.confirm(`Delete all icons in "${category}"?`)) return;
+    await api.delete(`/api/icon-assets?category=${encodeURIComponent(category)}`);
+    await refreshIconAssets();
+  }
+
+  async function deleteIcon(id: string) {
+    await api.delete(`/api/icon-assets/${id}`);
+    await refreshIconAssets();
+  }
+
+  return (
+    <Card title="Icon library">
+      <p>
+        Upload your own icons for the collection icon picker. Choose a folder with images sorted into
+        subfolders — each subfolder becomes a labeled category, same as the built-in emoji sections.
+      </p>
+      <button
+        onClick={() => folderInputRef.current?.click()}
+        disabled={uploading}
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800 disabled:opacity-50"
+      >
+        {uploading ? "Uploading…" : "Choose a folder"}
+      </button>
+      <input
+        ref={folderInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => e.target.files && handleFolderSelect(e.target.files)}
+      />
+      {progress && (
+        <p className="text-xs text-neutral-500">
+          Uploaded {progress.done} of {progress.total}
+          {!uploading && progress.done >= progress.total ? " (done)" : ""}
+        </p>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {categories.length > 0 && (
+        <div className="flex flex-col gap-3 pt-2 border-t border-neutral-800">
+          {categories.map(([category, icons]) => (
+            <div key={category}>
+              <div className="flex items-center justify-between pb-1.5">
+                <span className="text-xs font-medium text-neutral-300">
+                  {category} <span className="text-neutral-500">({icons.length})</span>
+                </span>
+                <button onClick={() => deleteCategory(category)} className="text-xs text-neutral-500 hover:text-red-400">
+                  Delete category
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {icons.map((icon) => (
+                  <div key={icon.id} className="group relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={icon.path} alt="" className="h-8 w-8 rounded border border-neutral-800 object-cover" />
+                    <button
+                      onClick={() => deleteIcon(icon.id)}
+                      title="Remove"
+                      className="absolute -top-1.5 -right-1.5 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-red-600 hover:text-white text-[10px] leading-none"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }
