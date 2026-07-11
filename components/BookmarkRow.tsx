@@ -48,6 +48,15 @@ export function BookmarkRow({
         <span className="shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px]">{bookmark.domain}</span>
       )}
 
+      {bookmark.isBroken && (
+        <span
+          title="This link appears to be broken"
+          className="shrink-0 text-[11px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400"
+        >
+          Broken
+        </span>
+      )}
+
       {!dense && bookmark.tags.length > 0 && (
         <div className="hidden sm:flex flex-wrap gap-1 shrink-0">
           {bookmark.tags.map((t) => (

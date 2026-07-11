@@ -34,6 +34,8 @@ export interface BookmarkDTO {
   coverImagePath: string | null;
   collectionId: string | null;
   deletedAt: string | null;
+  isBroken: boolean;
+  linkCheckedAt: string | null;
   createdAt: string;
   updatedAt: string;
   tags: TagDTO[];

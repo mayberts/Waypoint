@@ -59,7 +59,19 @@ export function BookmarkCard({
           </a>
         </div>
 
-        {bookmark.domain && <div className="text-xs text-[var(--text-faint)] truncate">{bookmark.domain}</div>}
+        {(bookmark.domain || bookmark.isBroken) && (
+          <div className="flex items-center gap-1.5">
+            {bookmark.domain && <div className="text-xs text-[var(--text-faint)] truncate">{bookmark.domain}</div>}
+            {bookmark.isBroken && (
+              <span
+                title="This link appears to be broken"
+                className="text-[11px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 shrink-0"
+              >
+                Broken
+              </span>
+            )}
+          </div>
+        )}
 
         {bookmark.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-0.5">

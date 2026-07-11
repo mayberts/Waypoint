@@ -45,7 +45,7 @@ export function BookmarkMoodboard({
                   <img src={b.coverImagePath} alt="" className="w-full h-auto block" />
                 </a>
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <Favicon faviconPath={b.faviconPath} domain={b.domain} size={14} />
                     <a
                       href={b.url}
@@ -55,6 +55,14 @@ export function BookmarkMoodboard({
                     >
                       {b.title}
                     </a>
+                    {b.isBroken && (
+                      <span
+                        title="This link appears to be broken"
+                        className="text-[11px] px-1.5 py-0.5 rounded-full bg-red-500/25 text-red-300 shrink-0"
+                      >
+                        Broken
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button
@@ -77,7 +85,7 @@ export function BookmarkMoodboard({
                 >
                   {b.domain}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <Favicon faviconPath={b.faviconPath} domain={b.domain} size={14} />
                   <a
                     href={b.url}
@@ -87,6 +95,14 @@ export function BookmarkMoodboard({
                   >
                     {b.title}
                   </a>
+                  {b.isBroken && (
+                    <span
+                      title="This link appears to be broken"
+                      className="text-[11px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 shrink-0"
+                    >
+                      Broken
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => onEdit(b)}

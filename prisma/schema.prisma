@@ -36,6 +36,8 @@ model Bookmark {
   coverImagePath   String?
   collectionId     String?
   deletedAt        DateTime? // soft-delete: set instead of removing the row; excluded from all normal queries
+  isBroken         Boolean   @default(false)
+  linkCheckedAt    DateTime? // set on every link-check attempt regardless of outcome, for the same reason as faviconCheckedAt
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

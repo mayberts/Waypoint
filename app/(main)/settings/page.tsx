@@ -55,6 +55,7 @@ export default function SettingsPage() {
             <ImportSection />
             <ExportSection />
             <FaviconRefreshSection />
+            <BrokenLinkSection />
             <TrashSection />
           </>
         )}
@@ -290,6 +291,80 @@ function FaviconRefreshSection() {
       {progress && (
         <p className="text-xs text-[var(--text-faint)]">
           Checked {progress.done} of {progress.total} — {progress.updated} favicon{progress.updated === 1 ? "" : "s"}{" "}
+          found{!running && progress.done >= progress.total ? " (done)" : ""}
+        </p>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+function BrokenLinkSection() {
+  const [since] = useState(() => Date.now());
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number; broken: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<{ remaining: number }>(`/api/bookmarks/check-links?since=${since}`).then((r) => setRemaining(r.remaining));
+  }, [since]);
+
+  async function run() {
+    setRunning(true);
+    setError(null);
+    const startTotal = remaining ?? 0;
+    let done = 0;
+    let brokenTotal = 0;
+    setProgress({ done: 0, total: startTotal, broken: 0 });
+    try {
+      for (;;) {
+        const r = await api.post<{ processed: number; broken: number; remaining: number }>(
+          "/api/bookmarks/check-links",
+          { since, limit: 20 }
+        );
+        done += r.processed;
+        brokenTotal += r.broken;
+        setProgress({ done, total: done + r.remaining, broken: brokenTotal });
+        setRemaining(r.remaining);
+        if (r.remaining === 0 || r.processed === 0) break;
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to check links");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <Card title="Broken links">
+      <p>
+        Checks every bookmark&apos;s URL to see if it still resolves. Links that time out or return an error are
+        flagged so you can review or remove them — nothing is deleted automatically.
+      </p>
+
+      {remaining === null ? (
+        <p className="text-xs text-[var(--text-faint)]">Checking…</p>
+      ) : (
+        <>
+          {!running && !progress && (
+            <p className="text-xs text-[var(--text-faint)]">
+              {remaining} bookmark{remaining === 1 ? "" : "s"} to check.
+            </p>
+          )}
+          <button
+            onClick={run}
+            disabled={running || remaining === 0}
+            className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+          >
+            {running ? "Checking…" : "Check for broken links"}
+          </button>
+        </>
+      )}
+
+      {progress && (
+        <p className="text-xs text-[var(--text-faint)]">
+          Checked {progress.done} of {progress.total} — {progress.broken} broken link{progress.broken === 1 ? "" : "s"}{" "}
           found{!running && progress.done >= progress.total ? " (done)" : ""}
         </p>
       )}
