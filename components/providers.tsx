@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { api } from "@/lib/api-client";
 import type { CollectionDTO, TagDTO, IconAssetDTO } from "@/lib/types";
 import { accentColorByValue, DEFAULT_ACCENT_COLOR } from "@/lib/accent-colors";
@@ -42,6 +43,7 @@ function applyAppearance(settings: AppearanceSettings) {
 }
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [collections, setCollections] = useState<CollectionDTO[]>([]);
   const [tags, setTags] = useState<TagDTO[]>([]);
   const [iconAssets, setIconAssets] = useState<IconAssetDTO[]>([]);
@@ -75,11 +77,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // The login page is reachable pre-authentication, so these (now
+    // session-gated) endpoints would just 401 — skip fetching there. Nothing
+    // under /login reads `loading`, so leaving it at its initial value is fine.
+    if (pathname === "/login") return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount
     Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshAppearance()]).finally(() =>
       setLoading(false)
     );
-  }, [refreshCollections, refreshTags, refreshIconAssets, refreshAppearance]);
+  }, [pathname, refreshCollections, refreshTags, refreshIconAssets, refreshAppearance]);
 
   return (
     <AppDataContext.Provider

@@ -16,6 +16,7 @@ Open `http://<host>:8745`. The database schema migrates automatically on first b
 
 ## Features
 
+- **Login** — a single username/password account gates the whole app (Settings → Account to change the password or sign out). The first visit to a fresh instance shows a one-time "create your account" screen instead of a login form.
 - **Collections** — nested folders with drag-and-drop reordering and re-parenting (drag onto a folder to nest, near its top/bottom edge to reorder).
 - **Bookmarks** — adding a URL auto-fetches its title, description, favicon, and `og:image` cover, all downloaded and stored locally (never hotlinked) so bookmarks survive the source site changing or disappearing.
 - **Custom favicons/covers** — override the auto-fetched favicon or cover image any time from the bookmark's edit drawer.

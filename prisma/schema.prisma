@@ -65,13 +65,16 @@ model BookmarkTag {
 }
 
 model Settings {
-  id          Int     @id @default(1)
-  apiToken    String
-  iconsSeeded Boolean @default(false)
-  accentColor String  @default("blue")
-  colorScheme String  @default("dark")
-  density     String  @default("comfortable")
-  gridPattern String  @default("none")
+  id               Int     @id @default(1)
+  apiToken         String
+  iconsSeeded      Boolean @default(false)
+  accentColor      String  @default("blue")
+  colorScheme      String  @default("dark")
+  density          String  @default("comfortable")
+  gridPattern      String  @default("none")
+  authUsername     String?
+  authPasswordHash String?
+  sessionSecret    String?
 }
 
 // User-uploaded icons for the collection icon picker, organized into

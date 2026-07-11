@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api-client";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
@@ -14,6 +15,7 @@ const TABS = [
   { id: "data", label: "Import & Export" },
   { id: "icons", label: "Icon Library" },
   { id: "appearance", label: "Appearance" },
+  { id: "account", label: "Account" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -64,6 +66,7 @@ export default function SettingsPage() {
             <DensitySection />
           </>
         )}
+        {tab === "account" && <AccountSection />}
       </div>
     </div>
   );
@@ -629,6 +632,111 @@ function DensitySection() {
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
+  );
+}
+
+function AccountSection() {
+  const router = useRouter();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function changePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+    if (newPassword !== confirmPassword) {
+      setError("New passwords don't match");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.patch("/api/auth/password", { currentPassword, newPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to change password");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function signOut() {
+    setSigningOut(true);
+    try {
+      await api.post("/api/auth/logout");
+      router.push("/login");
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  }
+
+  return (
+    <>
+      <Card title="Change password">
+        <form onSubmit={changePassword} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[var(--text-faint)]">Current password</label>
+            <input
+              required
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[var(--text-faint)]">New password</label>
+            <input
+              required
+              type="password"
+              minLength={8}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[var(--text-faint)]">Confirm new password</label>
+            <input
+              required
+              type="password"
+              minLength={8}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
+            />
+          </div>
+          {error && <p className="text-xs text-red-400">{error}</p>}
+          {success && <p className="text-xs text-green-400">Password changed.</p>}
+          <button
+            type="submit"
+            disabled={saving}
+            className="self-start px-3 py-1.5 text-sm rounded-md bg-[var(--accent-strong)] text-white hover:bg-[var(--accent)] disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Change password"}
+          </button>
+        </form>
+      </Card>
+
+      <Card title="Sign out">
+        <p>Signs you out of this device and invalidates any other active sessions.</p>
+        <button
+          onClick={signOut}
+          disabled={signingOut}
+          className="self-start px-3 py-1.5 text-sm rounded-md border border-[var(--border-strong)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+        >
+          {signingOut ? "Signing out…" : "Sign out"}
+        </button>
+      </Card>
+    </>
   );
 }
 
