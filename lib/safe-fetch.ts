@@ -59,16 +59,26 @@ async function assertPublicHost(hostname: string) {
 
 export class ResponseTooLargeError extends Error {}
 
+export interface SafeFetchOptions {
+  // Skip the private/loopback/link-local IP block. Waypoint is a self-hosted,
+  // single-user, auth-gated app whose owner routinely bookmarks their own LAN
+  // services (Radarr, a router UI, etc.), so link-liveness checks — which
+  // only read a status code and never parse or store the response body —
+  // need to reach those addresses. Fetches that parse or store body content
+  // (metadata/favicon fetch) must leave this off.
+  allowPrivate?: boolean;
+}
+
 /**
- * fetch() wrapped with SSRF guards (public-IP-only, http/https only) and a
- * hard timeout. Use for any request to a URL the user supplied.
+ * fetch() wrapped with SSRF guards (public-IP-only by default, http/https
+ * only) and a hard timeout. Use for any request to a URL the user supplied.
  */
-export async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
+export async function safeFetch(url: string, init?: RequestInit, options?: SafeFetchOptions): Promise<Response> {
   const parsed = new URL(url);
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     throw new Error(`Unsupported protocol: ${parsed.protocol}`);
   }
-  await assertPublicHost(parsed.hostname);
+  if (!options?.allowPrivate) await assertPublicHost(parsed.hostname);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
@@ -84,7 +94,7 @@ export async function safeFetch(url: string, init?: RequestInit): Promise<Respon
     });
     // fetch() follows redirects internally; re-validate the final host so a
     // redirect chain can't be used to reach a private address.
-    await assertPublicHost(new URL(res.url).hostname);
+    if (!options?.allowPrivate) await assertPublicHost(new URL(res.url).hostname);
     return res;
   } finally {
     clearTimeout(timeout);
