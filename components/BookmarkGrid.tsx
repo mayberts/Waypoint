@@ -5,6 +5,7 @@ import { useBookmarks, type BookmarkQuery } from "@/lib/use-bookmarks";
 import type { BookmarkDTO } from "@/lib/types";
 import { api } from "@/lib/api-client";
 import { isViewMode, loadLocalView, saveLocalView, applyViewToAllLocalKeys, type ViewMode } from "@/lib/view-prefs";
+import { gridPatternStyle } from "@/lib/grid-patterns";
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkRow } from "./BookmarkRow";
 import { BookmarkMoodboard } from "./BookmarkMoodboard";
@@ -28,7 +29,7 @@ export function BookmarkGrid({
   defaultCollectionId?: string | null;
 }) {
   const { bookmarks, loading, refresh } = useBookmarks(query);
-  const { collections, refreshCollections } = useAppData();
+  const { collections, refreshCollections, appearance } = useAppData();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<BookmarkDTO | null>(null);
   // Starts at "cards" to match the server-rendered shell (localStorage isn't
@@ -85,7 +86,7 @@ export function BookmarkGrid({
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
-        <h1 className="text-lg font-semibold text-neutral-100">{title}</h1>
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
         <div className="flex items-center gap-2">
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
@@ -97,13 +98,16 @@ export function BookmarkGrid({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
+      <div className="flex-1 overflow-y-auto px-6 pb-6" style={gridPatternStyle(appearance.gridPattern)}>
         {loading ? (
-          <p className="text-sm text-neutral-500">Loading…</p>
+          <p className="text-sm text-[var(--text-faint)]">Loading…</p>
         ) : bookmarks.length === 0 ? (
-          <p className="text-sm text-neutral-500">No bookmarks here yet.</p>
+          <p className="text-sm text-[var(--text-faint)]">No bookmarks here yet.</p>
         ) : view === "cards" ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+          <div
+            className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
+            style={{ gap: "var(--card-gap)" }}
+          >
             {bookmarks.map((b) => (
               <BookmarkCard key={b.id} bookmark={b} onEdit={() => setEditing(b)} />
             ))}

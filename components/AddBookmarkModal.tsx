@@ -52,9 +52,9 @@ export function AddBookmarkModal({
       <form
         onSubmit={submit}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-lg border border-neutral-800 bg-neutral-950 p-4 flex flex-col gap-3"
+        className="w-full max-w-md rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-4 flex flex-col gap-3"
       >
-        <h2 className="text-sm font-semibold text-neutral-200">Add bookmark</h2>
+        <h2 className="text-sm font-semibold text-[var(--text-secondary)]">Add bookmark</h2>
 
         <input
           autoFocus
@@ -63,13 +63,13 @@ export function AddBookmarkModal({
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://example.com"
-          className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-600"
+          className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)]"
         />
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title (auto-detected if left blank)"
-          className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-600"
+          className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)]"
         />
         <CollectionSelect value={collectionId} onChange={setCollectionId} />
         <TagInput value={tags} onChange={setTags} />
@@ -78,7 +78,7 @@ export function AddBookmarkModal({
           onChange={(e) => setNote(e.target.value)}
           placeholder="Note (optional)"
           rows={2}
-          className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-600 resize-none"
+          className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)] resize-none"
         />
 
         {error && <p className="text-xs text-red-400">{error}</p>}
@@ -87,7 +87,7 @@ export function AddBookmarkModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-sm rounded-md text-neutral-300 hover:bg-neutral-800"
+            className="px-3 py-1.5 text-sm rounded-md text-[var(--text-body)] hover:bg-[var(--surface-2)]"
           >
             Cancel
           </button>

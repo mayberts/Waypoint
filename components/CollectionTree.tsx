@@ -155,10 +155,10 @@ export function CollectionTree({ selectedId }: { selectedId?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between px-2 pt-3 pb-1">
-        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Collections</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Collections</span>
         <button
           onClick={createRoot}
-          className="text-neutral-400 hover:text-neutral-100 text-base leading-none px-1"
+          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-base leading-none px-1"
           title="New collection"
         >
           +
@@ -241,10 +241,14 @@ function Row({
         setDragRef(el);
         setDropRef(el);
       }}
-      className={`group relative flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-default ${
-        selected ? "bg-neutral-800 text-white" : "text-neutral-300 hover:bg-neutral-800/60"
+      className={`group relative flex items-center gap-2.5 rounded-md px-2 text-sm cursor-default ${
+        selected ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-body)] hover:bg-[var(--surface-2-a60)]"
       } ${isDragging ? "opacity-40" : ""}`}
-      style={{ paddingLeft: `${8 + node.depth * 16}px` }}
+      style={{
+        paddingLeft: `${8 + node.depth * 16}px`,
+        paddingTop: "var(--sidebar-row-py)",
+        paddingBottom: "var(--sidebar-row-py)",
+      }}
     >
       {dropIndicator === "before" && (
         <div className="absolute left-2 right-2 -top-px h-0.5 bg-[var(--accent)] rounded" />
@@ -259,7 +263,7 @@ function Row({
       <span
         {...listeners}
         {...attributes}
-        className="cursor-grab active:cursor-grabbing text-neutral-500 hover:text-neutral-300 shrink-0"
+        className="cursor-grab active:cursor-grabbing text-[var(--text-faint)] hover:text-[var(--text-body)] shrink-0"
         title="Drag to move"
       >
         ⠿
@@ -271,7 +275,7 @@ function Row({
           e.stopPropagation();
           onToggleCollapse();
         }}
-        className={`flex items-center justify-center h-4 w-4 shrink-0 text-neutral-500 hover:text-neutral-200 ${
+        className={`flex items-center justify-center h-4 w-4 shrink-0 text-[var(--text-faint)] hover:text-[var(--text-secondary)] ${
           node.children.length === 0 ? "invisible" : ""
         }`}
         tabIndex={node.children.length === 0 ? -1 : 0}
@@ -286,12 +290,18 @@ function Row({
             const rect = e.currentTarget.getBoundingClientRect();
             setIconAnchor((current) => (current ? null : { top: rect.top, left: rect.left, bottom: rect.bottom }));
           }}
-          className="flex items-center justify-center h-6 w-6 text-lg leading-none rounded hover:ring-1 hover:ring-neutral-600"
+          style={{ height: "var(--sidebar-row-icon)", width: "var(--sidebar-row-icon)" }}
+          className="flex items-center justify-center text-lg leading-none rounded hover:ring-1 hover:ring-[var(--border-stronger)]"
           title="Change icon"
         >
           {isIconImagePath(node.icon) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={node.icon} alt="" className="h-6 w-6 rounded object-cover" />
+            <img
+              src={node.icon}
+              alt=""
+              style={{ height: "var(--sidebar-row-icon)", width: "var(--sidebar-row-icon)" }}
+              className="rounded object-cover"
+            />
           ) : (
             node.icon || "📁"
           )}
@@ -316,7 +326,7 @@ function Row({
             if (e.key === "Enter") onCommitEdit();
             if (e.key === "Escape") onCancelEdit();
           }}
-          className="flex-1 min-w-0 bg-neutral-900 border border-neutral-700 rounded px-1 text-sm"
+          className="flex-1 min-w-0 bg-[var(--surface-1)] border border-[var(--border-strong)] rounded px-1 text-sm"
         />
       ) : (
         <Link href={`/collection/${node.id}`} className="flex-1 min-w-0 truncate" onDoubleClick={onStartEdit}>
@@ -325,14 +335,14 @@ function Row({
       )}
 
       {node._count && (
-        <span className="text-xs text-neutral-500 tabular-nums shrink-0">{node._count.bookmarks}</span>
+        <span className="text-xs text-[var(--text-faint)] tabular-nums shrink-0">{node._count.bookmarks}</span>
       )}
 
       <div className="hidden group-hover:flex items-center gap-1 shrink-0">
-        <button onClick={onAddChild} title="Add subfolder" className="text-neutral-500 hover:text-neutral-200 px-0.5">
+        <button onClick={onAddChild} title="Add subfolder" className="text-[var(--text-faint)] hover:text-[var(--text-secondary)] px-0.5">
           +
         </button>
-        <button onClick={onDelete} title="Delete" className="text-neutral-500 hover:text-red-400 px-0.5">
+        <button onClick={onDelete} title="Delete" className="text-[var(--text-faint)] hover:text-red-400 px-0.5">
           ×
         </button>
       </div>

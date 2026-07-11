@@ -75,24 +75,24 @@ export function BookmarkEditDrawer({
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full max-w-sm bg-neutral-950 border-l border-neutral-800 p-4 flex flex-col gap-3 overflow-y-auto"
+        className="h-full w-full max-w-sm bg-[var(--surface-0)] border-l border-[var(--border)] p-4 flex flex-col gap-3 overflow-y-auto"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-neutral-200">Edit bookmark</h2>
-          <button onClick={onClose} className="text-neutral-500 hover:text-neutral-200 text-lg leading-none">
+          <h2 className="text-sm font-semibold text-[var(--text-secondary)]">Edit bookmark</h2>
+          <button onClick={onClose} className="text-[var(--text-faint)] hover:text-[var(--text-secondary)] text-lg leading-none">
             ×
           </button>
         </div>
 
-        <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-xs text-neutral-500 truncate hover:underline">
+        <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--text-faint)] truncate hover:underline">
           {bookmark.url}
         </a>
 
         <div>
-          <label className="text-xs text-neutral-500">Cover image</label>
+          <label className="text-xs text-[var(--text-faint)]">Cover image</label>
           <div
             onClick={() => coverInput.current?.click()}
-            className="mt-1 h-24 w-full rounded-md bg-neutral-900 border border-dashed border-neutral-700 overflow-hidden cursor-pointer flex items-center justify-center text-xs text-neutral-500 hover:border-neutral-500"
+            className="mt-1 h-24 w-full rounded-md bg-[var(--surface-1)] border border-dashed border-[var(--border-strong)] overflow-hidden cursor-pointer flex items-center justify-center text-xs text-[var(--text-faint)] hover:border-[var(--border-strongest)]"
           >
             {cover ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -111,10 +111,10 @@ export function BookmarkEditDrawer({
         </div>
 
         <div>
-          <label className="text-xs text-neutral-500">Favicon</label>
+          <label className="text-xs text-[var(--text-faint)]">Favicon</label>
           <div
             onClick={() => faviconInput.current?.click()}
-            className="mt-1 h-10 w-10 rounded-md bg-neutral-900 border border-dashed border-neutral-700 overflow-hidden cursor-pointer flex items-center justify-center text-neutral-500 hover:border-neutral-500"
+            className="mt-1 h-10 w-10 rounded-md bg-[var(--surface-1)] border border-dashed border-[var(--border-strong)] overflow-hidden cursor-pointer flex items-center justify-center text-[var(--text-faint)] hover:border-[var(--border-strongest)]"
           >
             {favicon ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -133,35 +133,35 @@ export function BookmarkEditDrawer({
         </div>
 
         <div>
-          <label className="text-xs text-neutral-500">Title</label>
+          <label className="text-xs text-[var(--text-faint)]">Title</label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 focus:outline-none focus:border-neutral-600"
+            className="mt-1 w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
           />
         </div>
 
         <div>
-          <label className="text-xs text-neutral-500">Collection</label>
+          <label className="text-xs text-[var(--text-faint)]">Collection</label>
           <div className="mt-1">
             <CollectionSelect value={collectionId} onChange={setCollectionId} />
           </div>
         </div>
 
         <div>
-          <label className="text-xs text-neutral-500">Tags</label>
+          <label className="text-xs text-[var(--text-faint)]">Tags</label>
           <div className="mt-1">
             <TagInput value={tags} onChange={setTags} />
           </div>
         </div>
 
         <div>
-          <label className="text-xs text-neutral-500">Note</label>
+          <label className="text-xs text-[var(--text-faint)]">Note</label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
-            className="mt-1 w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 focus:outline-none focus:border-neutral-600 resize-none"
+            className="mt-1 w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)] resize-none"
           />
         </div>
 

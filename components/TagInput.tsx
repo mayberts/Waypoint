@@ -10,7 +10,7 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (tags
       <input
         list="waypoint-tag-suggestions"
         placeholder="Add a tag and press Enter"
-        className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-600"
+        className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)]"
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
           e.preventDefault();
@@ -31,13 +31,13 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (tags
           {value.map((name) => (
             <span
               key={name}
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-neutral-800 text-neutral-300"
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-body)]"
             >
               {name}
               <button
                 type="button"
                 onClick={() => onChange(value.filter((t) => t !== name))}
-                className="text-neutral-500 hover:text-neutral-200"
+                className="text-[var(--text-faint)] hover:text-[var(--text-secondary)]"
               >
                 ×
               </button>

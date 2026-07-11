@@ -34,7 +34,7 @@ function QuickSaveForm() {
   }
 
   if (!url) {
-    return <p className="text-sm text-neutral-400">No URL given.</p>;
+    return <p className="text-sm text-[var(--text-muted)]">No URL given.</p>;
   }
 
   if (saved) {
@@ -43,18 +43,18 @@ function QuickSaveForm() {
 
   return (
     <form onSubmit={submit} className="w-full max-w-sm flex flex-col gap-3">
-      <h1 className="flex items-center gap-2 text-sm font-semibold text-neutral-100">
+      <h1 className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
         <Logo size={18} />
         Save to Waypoint
       </h1>
-      <p className="text-xs text-neutral-500 truncate">{url}</p>
+      <p className="text-xs text-[var(--text-faint)] truncate">{url}</p>
 
       <input
         autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Title"
-        className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 focus:outline-none focus:border-neutral-600"
+        className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
       />
       <CollectionSelect value={collectionId} onChange={setCollectionId} />
       <TagInput value={tags} onChange={setTags} />
@@ -74,8 +74,8 @@ function QuickSaveForm() {
 
 export default function QuickSavePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-neutral-900">
-      <Suspense fallback={<p className="text-sm text-neutral-500">Loading…</p>}>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--surface-1)]">
+      <Suspense fallback={<p className="text-sm text-[var(--text-faint)]">Loading…</p>}>
         <QuickSaveForm />
       </Suspense>
     </div>

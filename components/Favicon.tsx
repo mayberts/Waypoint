@@ -8,7 +8,7 @@ export function Favicon({
 }: {
   faviconPath: string | null;
   domain: string | null;
-  size?: number;
+  size?: number | string;
   className?: string;
 }) {
   return (

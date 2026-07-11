@@ -7,6 +7,7 @@ import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
 import type { BookmarkDTO, IconAssetDTO } from "@/lib/types";
 import { ACCENT_COLORS } from "@/lib/accent-colors";
+import { GRID_PATTERN_OPTIONS } from "@/lib/grid-patterns";
 
 const TABS = [
   { id: "connect", label: "Connect" },
@@ -21,17 +22,17 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6 max-w-2xl flex flex-col gap-6">
-      <h1 className="text-lg font-semibold text-neutral-100">Settings</h1>
+      <h1 className="text-lg font-semibold text-[var(--text-primary)]">Settings</h1>
 
-      <div className="flex gap-1 border-b border-neutral-800 sticky top-0 bg-neutral-900 z-10">
+      <div className="flex gap-1 border-b border-[var(--border)] sticky top-0 bg-[var(--surface-1)] z-10">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${
               tab === t.id
-                ? "border-[var(--accent)] text-white"
-                : "border-transparent text-neutral-400 hover:text-neutral-200"
+                ? "border-[var(--accent)] text-[var(--text-primary)]"
+                : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             }`}
           >
             {t.label}
@@ -56,7 +57,13 @@ export default function SettingsPage() {
           </>
         )}
         {tab === "icons" && <IconLibrarySection />}
-        {tab === "appearance" && <AppearanceSection />}
+        {tab === "appearance" && (
+          <>
+            <AppearanceSection />
+            <BackgroundPatternSection />
+            <DensitySection />
+          </>
+        )}
       </div>
     </div>
   );
@@ -65,8 +72,8 @@ export default function SettingsPage() {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-semibold text-neutral-200">{title}</h2>
-      <div className="rounded-lg border border-neutral-800 bg-neutral-950 p-4 flex flex-col gap-3 text-sm text-neutral-300">
+      <h2 className="text-sm font-semibold text-[var(--text-secondary)]">{title}</h2>
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-4 flex flex-col gap-3 text-sm text-[var(--text-body)]">
         {children}
       </div>
     </section>
@@ -101,18 +108,18 @@ function ApiTokenSection() {
         page after installing it.
       </p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 truncate rounded bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-xs">
+        <code className="flex-1 truncate rounded bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-xs">
           {token ? (revealed ? token : "•".repeat(24)) : "Loading…"}
         </code>
         <button
           onClick={() => setRevealed((v) => !v)}
-          className="px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800"
+          className="px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)]"
         >
           {revealed ? "Hide" : "Reveal"}
         </button>
         <button
           onClick={() => token && navigator.clipboard.writeText(token)}
-          className="px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800"
+          className="px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)]"
         >
           Copy
         </button>
@@ -120,7 +127,7 @@ function ApiTokenSection() {
       <button
         onClick={regenerate}
         disabled={busy}
-        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800 disabled:opacity-50"
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] disabled:opacity-50"
       >
         Regenerate token
       </button>
@@ -140,7 +147,7 @@ function BookmarkletSection() {
         href={code}
         onClick={(e) => e.preventDefault()}
         draggable
-        className="self-start px-3 py-1.5 text-sm rounded-md bg-neutral-800 text-neutral-100 cursor-grab"
+        className="self-start px-3 py-1.5 text-sm rounded-md bg-[var(--surface-2)] text-[var(--text-primary)] cursor-grab"
       >
         📌 Save to Waypoint
       </a>
@@ -154,11 +161,11 @@ function ExtensionSection() {
       <p>For a one-click save without opening a popup window, install the extension in this repo:</p>
       <ol className="list-decimal list-inside flex flex-col gap-1">
         <li>
-          In the repo: <code className="bg-neutral-900 px-1 rounded">cd extension && npm install && npm run build</code>
+          In the repo: <code className="bg-[var(--surface-1)] px-1 rounded">cd extension && npm install && npm run build</code>
         </li>
-        <li>Open <code className="bg-neutral-900 px-1 rounded">chrome://extensions</code>, enable Developer mode</li>
+        <li>Open <code className="bg-[var(--surface-1)] px-1 rounded">chrome://extensions</code>, enable Developer mode</li>
         <li>
-          Click &quot;Load unpacked&quot; and select <code className="bg-neutral-900 px-1 rounded">extension/dist</code>
+          Click &quot;Load unpacked&quot; and select <code className="bg-[var(--surface-1)] px-1 rounded">extension/dist</code>
         </li>
         <li>Open the extension&apos;s options page and paste in the API token above, plus this server&apos;s URL</li>
       </ol>
@@ -197,7 +204,7 @@ function ImportSection() {
         Import a bookmarks export (Netscape Bookmark File Format — the .html file Chrome, Firefox, and Raindrop all
         produce). Folder structure and embedded favicons are preserved.
       </p>
-      <label className="text-xs text-neutral-500">Import into</label>
+      <label className="text-xs text-[var(--text-faint)]">Import into</label>
       <CollectionSelect value={parentId} onChange={setParentId} />
       <input
         type="file"
@@ -257,20 +264,20 @@ function FaviconRefreshSection() {
       </p>
 
       {missingCount === null ? (
-        <p className="text-xs text-neutral-500">Checking…</p>
+        <p className="text-xs text-[var(--text-faint)]">Checking…</p>
       ) : missingCount === 0 && !progress ? (
         <p className="text-xs text-green-400">All bookmarks already have a favicon.</p>
       ) : (
         <>
           {!running && missingCount > 0 && (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-[var(--text-faint)]">
               {missingCount} bookmark{missingCount === 1 ? "" : "s"} missing a favicon.
             </p>
           )}
           <button
             onClick={run}
             disabled={running || missingCount === 0}
-            className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800 disabled:opacity-50"
+            className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] disabled:opacity-50"
           >
             {running ? "Refreshing…" : "Refresh missing favicons"}
           </button>
@@ -278,7 +285,7 @@ function FaviconRefreshSection() {
       )}
 
       {progress && (
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-[var(--text-faint)]">
           Checked {progress.done} of {progress.total} — {progress.updated} favicon{progress.updated === 1 ? "" : "s"}{" "}
           found{!running && progress.done >= progress.total ? " (done)" : ""}
         </p>
@@ -388,7 +395,7 @@ function IconLibrarySection() {
       <button
         onClick={() => folderInputRef.current?.click()}
         disabled={uploading}
-        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800 disabled:opacity-50"
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] disabled:opacity-50"
       >
         {uploading ? "Uploading…" : "Choose a folder"}
       </button>
@@ -400,7 +407,7 @@ function IconLibrarySection() {
         onChange={(e) => e.target.files && handleFolderSelect(e.target.files)}
       />
       {progress && (
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-[var(--text-faint)]">
           Uploaded {progress.done} of {progress.total}
           {!uploading && progress.done >= progress.total ? " (done)" : ""}
         </p>
@@ -408,20 +415,20 @@ function IconLibrarySection() {
       {error && <p className="text-xs text-red-400">{error}</p>}
 
       {categories.length > 0 && (
-        <div className="flex flex-col gap-1 pt-2 border-t border-neutral-800">
+        <div className="flex flex-col gap-1 pt-2 border-t border-[var(--border)]">
           {categories.map(([category, icons]) => {
             const isOpen = expanded.has(category);
             return (
-              <div key={category} className="border-b border-neutral-800/70 last:border-b-0">
+              <div key={category} className="border-b border-[var(--border-a70)] last:border-b-0">
                 <div className="flex items-center justify-between py-1.5">
                   <button
                     onClick={() => toggleCategory(category)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-neutral-300 hover:text-neutral-100"
+                    className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-body)] hover:text-[var(--text-primary)]"
                   >
-                    <span className={`text-neutral-500 transition-transform ${isOpen ? "rotate-90" : ""}`}>▶</span>
-                    {category} <span className="text-neutral-500">({icons.length})</span>
+                    <span className={`text-[var(--text-faint)] transition-transform ${isOpen ? "rotate-90" : ""}`}>▶</span>
+                    {category} <span className="text-[var(--text-faint)]">({icons.length})</span>
                   </button>
-                  <button onClick={() => deleteCategory(category)} className="text-xs text-neutral-500 hover:text-red-400">
+                  <button onClick={() => deleteCategory(category)} className="text-xs text-[var(--text-faint)] hover:text-red-400">
                     Delete category
                   </button>
                 </div>
@@ -430,11 +437,11 @@ function IconLibrarySection() {
                     {icons.map((icon) => (
                       <div key={icon.id} className="group relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={icon.path} alt="" className="h-8 w-8 rounded border border-neutral-800 object-cover" />
+                        <img src={icon.path} alt="" className="h-8 w-8 rounded border border-[var(--border)] object-cover" />
                         <button
                           onClick={() => deleteIcon(icon.id)}
                           title="Remove"
-                          className="absolute -top-1.5 -right-1.5 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-red-600 hover:text-white text-[10px] leading-none"
+                          className="absolute -top-1.5 -right-1.5 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--text-body)] hover:bg-red-600 hover:text-white text-[10px] leading-none"
                         >
                           ×
                         </button>
@@ -452,43 +459,166 @@ function IconLibrarySection() {
 }
 
 function AppearanceSection() {
-  const { accentColor, setAccentColor } = useAppData();
-  const [saving, setSaving] = useState<string | null>(null);
+  const { appearance, setAppearance } = useAppData();
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function choose(value: string) {
-    const previous = accentColor;
-    setSaving(value);
+  async function patch(field: "accentColor" | "colorScheme", value: string) {
+    const previous = appearance[field];
+    setSaving(true);
     setError(null);
-    setAccentColor(value);
+    setAppearance({ [field]: value });
     try {
-      await api.patch("/api/settings/appearance", { accentColor: value });
+      await api.patch("/api/settings/appearance", { [field]: value });
     } catch (err) {
-      setAccentColor(previous);
-      setError(err instanceof ApiError ? err.message : "Failed to save accent color");
+      setAppearance({ [field]: previous });
+      setError(err instanceof ApiError ? err.message : "Failed to save");
     } finally {
-      setSaving(null);
+      setSaving(false);
     }
   }
 
   return (
-    <Card title="Appearance">
-      <p>Accent color — controls buttons, selection highlights, and interactive elements.</p>
-      <div className="flex flex-wrap gap-2">
-        {ACCENT_COLORS.map((c) => (
+    <Card title="Theme">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[var(--text-secondary)] font-medium">Color scheme</p>
+          <p className="text-xs text-[var(--text-faint)]">Light or dark interface</p>
+        </div>
+        <div className="flex rounded-md border border-[var(--border)] overflow-hidden">
+          {(["light", "dark"] as const).map((scheme) => (
+            <button
+              key={scheme}
+              onClick={() => patch("colorScheme", scheme)}
+              disabled={saving}
+              className={`px-3 py-1.5 text-xs capitalize disabled:opacity-50 ${
+                appearance.colorScheme === scheme
+                  ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                  : "text-[var(--text-faint)] hover:text-[var(--text-secondary)]"
+              }`}
+            >
+              {scheme}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pt-2 border-t border-[var(--border)]">
+        <p className="text-[var(--text-secondary)] font-medium pb-0.5">Accent color</p>
+        <p className="text-xs text-[var(--text-faint)] pb-2">Controls buttons, selection highlights, and interactive elements.</p>
+        <div className="flex flex-wrap gap-2">
+          {ACCENT_COLORS.map((c) => (
+            <button
+              key={c.value}
+              onClick={() => patch("accentColor", c.value)}
+              disabled={saving}
+              title={c.label}
+              className="h-7 w-7 rounded-full disabled:opacity-50"
+              style={{
+                backgroundColor: c.hex,
+                outline: appearance.accentColor === c.value ? "2px solid var(--text-primary)" : "none",
+                outlineOffset: "2px",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+function BackgroundPatternSection() {
+  const { appearance, setAppearance } = useAppData();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function choose(value: string) {
+    const previous = appearance.gridPattern;
+    setSaving(true);
+    setError(null);
+    setAppearance({ gridPattern: value });
+    try {
+      await api.patch("/api/settings/appearance", { gridPattern: value });
+    } catch (err) {
+      setAppearance({ gridPattern: previous });
+      setError(err instanceof ApiError ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card title="Background pattern">
+      <p>Pattern shown behind the bookmark grid.</p>
+      <div className="flex flex-wrap gap-2.5">
+        {GRID_PATTERN_OPTIONS.map((option) => (
           <button
-            key={c.value}
-            onClick={() => choose(c.value)}
-            disabled={saving !== null}
-            title={c.label}
-            className="h-7 w-7 rounded-full disabled:opacity-50"
-            style={{
-              backgroundColor: c.hex,
-              outline: accentColor === c.value ? "2px solid white" : "none",
-              outlineOffset: "2px",
-            }}
-          />
+            key={option.value}
+            onClick={() => choose(option.value)}
+            disabled={saving}
+            title={option.label}
+            className="flex flex-col items-center gap-1 disabled:opacity-50"
+          >
+            <div
+              className="h-14 w-20 rounded-md border-2 bg-[var(--surface-1)]"
+              style={{
+                ...option.style,
+                borderColor: appearance.gridPattern === option.value ? "var(--accent)" : "var(--border)",
+              }}
+            />
+            <span className="text-xs text-[var(--text-faint)]">{option.label}</span>
+          </button>
         ))}
+      </div>
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+function DensitySection() {
+  const { appearance, setAppearance } = useAppData();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function choose(value: string) {
+    const previous = appearance.density;
+    setSaving(true);
+    setError(null);
+    setAppearance({ density: value });
+    try {
+      await api.patch("/api/settings/appearance", { density: value });
+    } catch (err) {
+      setAppearance({ density: previous });
+      setError(err instanceof ApiError ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card title="Density">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[var(--text-secondary)] font-medium">Layout density</p>
+          <p className="text-xs text-[var(--text-faint)]">Comfortable spacing or a more compact layout</p>
+        </div>
+        <div className="flex rounded-md border border-[var(--border)] overflow-hidden">
+          {(["comfortable", "compact"] as const).map((d) => (
+            <button
+              key={d}
+              onClick={() => choose(d)}
+              disabled={saving}
+              className={`px-3 py-1.5 text-xs capitalize disabled:opacity-50 ${
+                appearance.density === d
+                  ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                  : "text-[var(--text-faint)] hover:text-[var(--text-secondary)]"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
@@ -506,7 +636,7 @@ function ExportSection() {
       <a
         href="/api/export"
         download
-        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800"
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)]"
       >
         Download export
       </a>
@@ -526,7 +656,7 @@ function TrashSection() {
       <p>Deleted bookmarks go here first and can be restored, rather than disappearing immediately.</p>
       <Link
         href="/trash"
-        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800"
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)]"
       >
         View trash{count !== null ? ` (${count})` : ""}
       </Link>

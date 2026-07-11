@@ -5,31 +5,47 @@ import { api } from "@/lib/api-client";
 import type { CollectionDTO, TagDTO, IconAssetDTO } from "@/lib/types";
 import { accentColorByValue, DEFAULT_ACCENT_COLOR } from "@/lib/accent-colors";
 
+interface AppearanceSettings {
+  accentColor: string;
+  colorScheme: string;
+  density: string;
+  gridPattern: string;
+}
+
+const DEFAULT_APPEARANCE: AppearanceSettings = {
+  accentColor: DEFAULT_ACCENT_COLOR,
+  colorScheme: "dark",
+  density: "comfortable",
+  gridPattern: "none",
+};
+
 interface AppData {
   collections: CollectionDTO[];
   tags: TagDTO[];
   iconAssets: IconAssetDTO[];
-  accentColor: string;
+  appearance: AppearanceSettings;
   loading: boolean;
   refreshCollections: () => Promise<void>;
   refreshTags: () => Promise<void>;
   refreshIconAssets: () => Promise<void>;
-  setAccentColor: (value: string) => void;
+  setAppearance: (patch: Partial<AppearanceSettings>) => void;
 }
 
 const AppDataContext = createContext<AppData | null>(null);
 
-function applyAccentColor(value: string) {
-  const { hex, hexStrong } = accentColorByValue(value);
+function applyAppearance(settings: AppearanceSettings) {
+  const { hex, hexStrong } = accentColorByValue(settings.accentColor);
   document.documentElement.style.setProperty("--accent", hex);
   document.documentElement.style.setProperty("--accent-strong", hexStrong);
+  document.documentElement.setAttribute("data-theme", settings.colorScheme);
+  document.documentElement.setAttribute("data-density", settings.density);
 }
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [collections, setCollections] = useState<CollectionDTO[]>([]);
   const [tags, setTags] = useState<TagDTO[]>([]);
   const [iconAssets, setIconAssets] = useState<IconAssetDTO[]>([]);
-  const [accentColor, setAccentColorState] = useState(DEFAULT_ACCENT_COLOR);
+  const [appearance, setAppearanceState] = useState<AppearanceSettings>(DEFAULT_APPEARANCE);
   const [loading, setLoading] = useState(true);
 
   const refreshCollections = useCallback(async () => {
@@ -44,23 +60,26 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setIconAssets(await api.get<IconAssetDTO[]>("/api/icon-assets"));
   }, []);
 
-  const refreshAccentColor = useCallback(async () => {
-    const { accentColor } = await api.get<{ accentColor: string }>("/api/settings/appearance");
-    setAccentColorState(accentColor);
-    applyAccentColor(accentColor);
+  const refreshAppearance = useCallback(async () => {
+    const settings = await api.get<AppearanceSettings>("/api/settings/appearance");
+    setAppearanceState(settings);
+    applyAppearance(settings);
   }, []);
 
-  const setAccentColor = useCallback((value: string) => {
-    setAccentColorState(value);
-    applyAccentColor(value);
+  const setAppearance = useCallback((patch: Partial<AppearanceSettings>) => {
+    setAppearanceState((prev) => {
+      const next = { ...prev, ...patch };
+      applyAppearance(next);
+      return next;
+    });
   }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount
-    Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshAccentColor()]).finally(() =>
+    Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshAppearance()]).finally(() =>
       setLoading(false)
     );
-  }, [refreshCollections, refreshTags, refreshIconAssets, refreshAccentColor]);
+  }, [refreshCollections, refreshTags, refreshIconAssets, refreshAppearance]);
 
   return (
     <AppDataContext.Provider
@@ -68,12 +87,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         collections,
         tags,
         iconAssets,
-        accentColor,
+        appearance,
         loading,
         refreshCollections,
         refreshTags,
         refreshIconAssets,
-        setAccentColor,
+        setAppearance,
       }}
     >
       {children}

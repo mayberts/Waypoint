@@ -19,9 +19,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 shrink-0 h-full bg-neutral-950 border-r border-neutral-800 flex flex-col">
+    <aside className="w-64 shrink-0 h-full bg-[var(--surface-0)] border-r border-[var(--border)] flex flex-col">
       <div className="px-3 pt-4">
-        <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight text-white px-1">
+        <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight text-[var(--text-primary)] px-1">
           <Logo size={22} />
           Waypoint
         </Link>
@@ -32,7 +32,7 @@ export function Sidebar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search bookmarks…"
-          className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-600"
+          className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)]"
         />
       </form>
 
@@ -49,7 +49,7 @@ export function Sidebar() {
         <CollectionTree selectedId={collectionId} />
       </div>
 
-      <div className="px-3 py-3 border-t border-neutral-800">
+      <div className="px-3 py-3 border-t border-[var(--border)]">
         <SidebarLink href="/settings" active={pathname === "/settings"} icon="⚙️">
           Settings
         </SidebarLink>
@@ -72,11 +72,17 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2.5 rounded-md px-2 py-2 text-sm ${
-        active ? "bg-neutral-800 text-white" : "text-neutral-300 hover:bg-neutral-800/60"
+      style={{ paddingTop: "var(--sidebar-row-py)", paddingBottom: "var(--sidebar-row-py)" }}
+      className={`flex items-center gap-2.5 rounded-md px-2 text-sm ${
+        active ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-body)] hover:bg-[var(--surface-2-a60)]"
       }`}
     >
-      <span className="flex items-center justify-center h-6 w-6 text-lg leading-none shrink-0">{icon}</span>
+      <span
+        style={{ height: "var(--sidebar-row-icon)", width: "var(--sidebar-row-icon)" }}
+        className="flex items-center justify-center text-lg leading-none shrink-0"
+      >
+        {icon}
+      </span>
       <span>{children}</span>
     </Link>
   );

@@ -62,11 +62,11 @@ export default function TrashPage() {
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
-        <h1 className="text-lg font-semibold text-neutral-100">Trash</h1>
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">Trash</h1>
         {bookmarks.length > 0 && (
           <button
             onClick={emptyTrash}
-            className="px-3 py-1.5 text-sm rounded-md border border-neutral-800 text-neutral-300 hover:bg-red-950/50 hover:text-red-400 hover:border-red-900"
+            className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--text-body)] hover:bg-red-950/50 hover:text-red-400 hover:border-red-900"
           >
             Empty trash
           </button>
@@ -76,30 +76,30 @@ export default function TrashPage() {
       <div className="flex-1 overflow-y-auto px-6 pb-6">
         {error && <p className="text-sm text-red-400 pb-3">{error}</p>}
         {loading ? (
-          <p className="text-sm text-neutral-500">Loading…</p>
+          <p className="text-sm text-[var(--text-faint)]">Loading…</p>
         ) : bookmarks.length === 0 ? (
-          <p className="text-sm text-neutral-500">Trash is empty.</p>
+          <p className="text-sm text-[var(--text-faint)]">Trash is empty.</p>
         ) : (
           <div className="flex flex-col">
             {bookmarks.map((b) => (
               <div
                 key={b.id}
-                className="group flex items-center gap-3 py-3 border-b border-neutral-800/70 hover:bg-neutral-900/60"
+                className="group flex items-center gap-3 py-3 border-b border-[var(--border-a70)] hover:bg-[var(--surface-1-a60)]"
               >
                 <Favicon faviconPath={b.faviconPath} domain={b.domain} size={24} />
-                <span className="min-w-0 truncate text-sm font-medium text-neutral-300">{b.title}</span>
-                {b.domain && <span className="shrink-0 text-xs text-neutral-500 truncate max-w-[200px]">{b.domain}</span>}
+                <span className="min-w-0 truncate text-sm font-medium text-[var(--text-body)]">{b.title}</span>
+                {b.domain && <span className="shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px]">{b.domain}</span>}
                 <div className="flex-1" />
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => restore(b.id)}
-                    className="text-xs px-2 py-1 rounded-md border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
+                    className="text-xs px-2 py-1 rounded-md border border-[var(--border-strong)] text-[var(--text-body)] hover:bg-[var(--surface-2)]"
                   >
                     Restore
                   </button>
                   <button
                     onClick={() => deleteForever(b.id)}
-                    className="text-xs px-2 py-1 rounded-md border border-neutral-700 text-neutral-400 hover:bg-red-950/50 hover:text-red-400 hover:border-red-900"
+                    className="text-xs px-2 py-1 rounded-md border border-[var(--border-strong)] text-[var(--text-muted)] hover:bg-red-950/50 hover:text-red-400 hover:border-red-900"
                   >
                     Delete forever
                   </button>
