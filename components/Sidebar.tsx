@@ -36,7 +36,7 @@ export function Sidebar() {
         />
       </form>
 
-      <nav className="px-3 pt-3 flex flex-col gap-0.5 text-sm">
+      <nav className="px-3 pt-3 flex flex-col gap-0.5">
         <SidebarLink href="/" active={pathname === "/"} icon="🔖">
           All bookmarks
         </SidebarLink>
@@ -72,11 +72,11 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
+      className={`flex items-center gap-2.5 rounded-md px-2 py-2 text-sm ${
         active ? "bg-neutral-800 text-white" : "text-neutral-300 hover:bg-neutral-800/60"
       }`}
     >
-      <span>{icon}</span>
+      <span className="flex items-center justify-center h-6 w-6 text-lg leading-none shrink-0">{icon}</span>
       <span>{children}</span>
     </Link>
   );

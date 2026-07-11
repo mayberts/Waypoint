@@ -201,7 +201,7 @@ function Row({
         setDragRef(el);
         setDropRef(el);
       }}
-      className={`group relative flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm cursor-default ${
+      className={`group relative flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-default ${
         selected ? "bg-neutral-800 text-white" : "text-neutral-300 hover:bg-neutral-800/60"
       } ${isDragging ? "opacity-40" : ""}`}
       style={{ paddingLeft: `${8 + node.depth * 16}px` }}
@@ -231,12 +231,12 @@ function Row({
             const rect = e.currentTarget.getBoundingClientRect();
             setIconAnchor((current) => (current ? null : { top: rect.top, left: rect.left, bottom: rect.bottom }));
           }}
-          className="flex items-center justify-center h-4 w-4 rounded hover:ring-1 hover:ring-neutral-600"
+          className="flex items-center justify-center h-6 w-6 text-lg leading-none rounded hover:ring-1 hover:ring-neutral-600"
           title="Change icon"
         >
           {isIconImagePath(node.icon) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={node.icon} alt="" className="h-4 w-4 rounded object-cover" />
+            <img src={node.icon} alt="" className="h-6 w-6 rounded object-cover" />
           ) : (
             node.icon || "📁"
           )}
