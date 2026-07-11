@@ -90,7 +90,7 @@ export function BookmarkGrid({
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
             onClick={() => setAdding(true)}
-            className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-500"
+            className="px-3 py-1.5 text-sm rounded-md bg-[var(--accent-strong)] text-white hover:bg-[var(--accent)]"
           >
             + Add bookmark
           </button>

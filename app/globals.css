@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+}
+
 html,
 body {
   height: 100%;

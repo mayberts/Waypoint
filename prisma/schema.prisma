@@ -68,6 +68,7 @@ model Settings {
   id          Int     @id @default(1)
   apiToken    String
   iconsSeeded Boolean @default(false)
+  accentColor String  @default("blue")
 }
 
 // User-uploaded icons for the collection icon picker, organized into

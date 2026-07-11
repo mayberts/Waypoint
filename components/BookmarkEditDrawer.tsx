@@ -174,7 +174,7 @@ export function BookmarkEditDrawer({
           <button
             onClick={save}
             disabled={saving}
-            className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm rounded-md bg-[var(--accent-strong)] text-white hover:bg-[var(--accent)] disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>

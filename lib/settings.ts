@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "./db";
+import { ACCENT_COLORS, DEFAULT_ACCENT_COLOR } from "./accent-colors";
 
 function generateToken(): string {
   return randomBytes(24).toString("base64url");
@@ -27,6 +28,23 @@ export async function isValidApiToken(token: string | null): Promise<boolean> {
   if (!token) return false;
   const current = await getOrCreateApiToken();
   return timingSafeEqual(token, current);
+}
+
+export async function getAccentColor(): Promise<string> {
+  const existing = await prisma.settings.findUnique({ where: { id: 1 } });
+  return existing?.accentColor ?? DEFAULT_ACCENT_COLOR;
+}
+
+export async function setAccentColor(value: string): Promise<string> {
+  if (!ACCENT_COLORS.some((c) => c.value === value)) {
+    throw new Error("Unknown accent color");
+  }
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { accentColor: value },
+    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), accentColor: value },
+  });
+  return value;
 }
 
 function timingSafeEqual(a: string, b: string): boolean {

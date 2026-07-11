@@ -48,9 +48,8 @@ export function ViewSwitcher({
                 className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm rounded hover:bg-neutral-800 text-neutral-200"
               >
                 <span
-                  className={`h-3 w-3 rounded-full border shrink-0 ${
-                    value === mode ? "border-blue-500 bg-blue-500" : "border-neutral-600"
-                  }`}
+                  className={`h-3 w-3 rounded-full border shrink-0 ${value === mode ? "" : "border-neutral-600"}`}
+                  style={value === mode ? { borderColor: "var(--accent)", backgroundColor: "var(--accent)" } : undefined}
                 />
                 <span className="w-4 text-center">{VIEW_META[mode].icon}</span>
                 {VIEW_META[mode].label}

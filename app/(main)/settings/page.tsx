@@ -6,11 +6,13 @@ import { api, ApiError } from "@/lib/api-client";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
 import type { BookmarkDTO, IconAssetDTO } from "@/lib/types";
+import { ACCENT_COLORS } from "@/lib/accent-colors";
 
 const TABS = [
   { id: "connect", label: "Connect" },
   { id: "data", label: "Import & Export" },
   { id: "icons", label: "Icon Library" },
+  { id: "appearance", label: "Appearance" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -28,7 +30,7 @@ export default function SettingsPage() {
             onClick={() => setTab(t.id)}
             className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${
               tab === t.id
-                ? "border-blue-500 text-white"
+                ? "border-[var(--accent)] text-white"
                 : "border-transparent text-neutral-400 hover:text-neutral-200"
             }`}
           >
@@ -54,6 +56,7 @@ export default function SettingsPage() {
           </>
         )}
         {tab === "icons" && <IconLibrarySection />}
+        {tab === "appearance" && <AppearanceSection />}
       </div>
     </div>
   );
@@ -444,6 +447,50 @@ function IconLibrarySection() {
           })}
         </div>
       )}
+    </Card>
+  );
+}
+
+function AppearanceSection() {
+  const { accentColor, setAccentColor } = useAppData();
+  const [saving, setSaving] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function choose(value: string) {
+    const previous = accentColor;
+    setSaving(value);
+    setError(null);
+    setAccentColor(value);
+    try {
+      await api.patch("/api/settings/appearance", { accentColor: value });
+    } catch (err) {
+      setAccentColor(previous);
+      setError(err instanceof ApiError ? err.message : "Failed to save accent color");
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  return (
+    <Card title="Appearance">
+      <p>Accent color — controls buttons, selection highlights, and interactive elements.</p>
+      <div className="flex flex-wrap gap-2">
+        {ACCENT_COLORS.map((c) => (
+          <button
+            key={c.value}
+            onClick={() => choose(c.value)}
+            disabled={saving !== null}
+            title={c.label}
+            className="h-7 w-7 rounded-full disabled:opacity-50"
+            style={{
+              backgroundColor: c.hex,
+              outline: accentColor === c.value ? "2px solid white" : "none",
+              outlineOffset: "2px",
+            }}
+          />
+        ))}
+      </div>
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
   );
 }

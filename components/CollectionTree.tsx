@@ -207,12 +207,14 @@ function Row({
       style={{ paddingLeft: `${8 + node.depth * 16}px` }}
     >
       {dropIndicator === "before" && (
-        <div className="absolute left-2 right-2 -top-px h-0.5 bg-blue-500 rounded" />
+        <div className="absolute left-2 right-2 -top-px h-0.5 bg-[var(--accent)] rounded" />
       )}
       {dropIndicator === "after" && (
-        <div className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-500 rounded" />
+        <div className="absolute left-2 right-2 -bottom-px h-0.5 bg-[var(--accent)] rounded" />
       )}
-      {dropIndicator === "nest" && <div className="absolute inset-0.5 rounded-md ring-2 ring-blue-500" />}
+      {dropIndicator === "nest" && (
+        <div className="absolute inset-0.5 rounded-md ring-2 ring-[var(--accent)]" />
+      )}
 
       <span
         {...listeners}
