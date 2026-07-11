@@ -12,7 +12,7 @@ import { GRID_PATTERN_OPTIONS, GRID_PATTERN_CATEGORIES } from "@/lib/grid-patter
 
 const TABS = [
   { id: "connect", label: "Connect" },
-  { id: "data", label: "Import & Export" },
+  { id: "data", label: "Data" },
   { id: "icons", label: "Icon Library" },
   { id: "appearance", label: "Appearance" },
   { id: "account", label: "Account" },
