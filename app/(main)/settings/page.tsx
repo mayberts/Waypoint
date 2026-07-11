@@ -7,18 +7,54 @@ import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
 import type { BookmarkDTO, IconAssetDTO } from "@/lib/types";
 
+const TABS = [
+  { id: "connect", label: "Connect" },
+  { id: "data", label: "Import & Export" },
+  { id: "icons", label: "Icon Library" },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
+
 export default function SettingsPage() {
+  const [tab, setTab] = useState<TabId>("connect");
+
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6 max-w-2xl flex flex-col gap-10">
+    <div className="flex-1 overflow-y-auto px-6 py-6 max-w-2xl flex flex-col gap-6">
       <h1 className="text-lg font-semibold text-neutral-100">Settings</h1>
-      <ApiTokenSection />
-      <BookmarkletSection />
-      <ExtensionSection />
-      <ImportSection />
-      <FaviconRefreshSection />
-      <IconLibrarySection />
-      <ExportSection />
-      <TrashSection />
+
+      <div className="flex gap-1 border-b border-neutral-800 sticky top-0 bg-neutral-900 z-10">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${
+              tab === t.id
+                ? "border-blue-500 text-white"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-10">
+        {tab === "connect" && (
+          <>
+            <ApiTokenSection />
+            <BookmarkletSection />
+            <ExtensionSection />
+          </>
+        )}
+        {tab === "data" && (
+          <>
+            <ImportSection />
+            <ExportSection />
+            <FaviconRefreshSection />
+            <TrashSection />
+          </>
+        )}
+        {tab === "icons" && <IconLibrarySection />}
+      </div>
     </div>
   );
 }
@@ -265,6 +301,7 @@ function IconLibrarySection() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // webkitdirectory/directory aren't in React's JSX typings for <input>, so
@@ -282,6 +319,15 @@ function IconLibrarySection() {
     }
     return Array.from(byCategory.entries());
   }, [iconAssets]);
+
+  function toggleCategory(category: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+  }
 
   async function handleFolderSelect(fileList: FileList) {
     const files = Array.from(fileList).filter((f) => IMAGE_EXT.test(f.name));
@@ -359,34 +405,43 @@ function IconLibrarySection() {
       {error && <p className="text-xs text-red-400">{error}</p>}
 
       {categories.length > 0 && (
-        <div className="flex flex-col gap-3 pt-2 border-t border-neutral-800">
-          {categories.map(([category, icons]) => (
-            <div key={category}>
-              <div className="flex items-center justify-between pb-1.5">
-                <span className="text-xs font-medium text-neutral-300">
-                  {category} <span className="text-neutral-500">({icons.length})</span>
-                </span>
-                <button onClick={() => deleteCategory(category)} className="text-xs text-neutral-500 hover:text-red-400">
-                  Delete category
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {icons.map((icon) => (
-                  <div key={icon.id} className="group relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={icon.path} alt="" className="h-8 w-8 rounded border border-neutral-800 object-cover" />
-                    <button
-                      onClick={() => deleteIcon(icon.id)}
-                      title="Remove"
-                      className="absolute -top-1.5 -right-1.5 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-red-600 hover:text-white text-[10px] leading-none"
-                    >
-                      ×
-                    </button>
+        <div className="flex flex-col gap-1 pt-2 border-t border-neutral-800">
+          {categories.map(([category, icons]) => {
+            const isOpen = expanded.has(category);
+            return (
+              <div key={category} className="border-b border-neutral-800/70 last:border-b-0">
+                <div className="flex items-center justify-between py-1.5">
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="flex items-center gap-1.5 text-xs font-medium text-neutral-300 hover:text-neutral-100"
+                  >
+                    <span className={`text-neutral-500 transition-transform ${isOpen ? "rotate-90" : ""}`}>▶</span>
+                    {category} <span className="text-neutral-500">({icons.length})</span>
+                  </button>
+                  <button onClick={() => deleteCategory(category)} className="text-xs text-neutral-500 hover:text-red-400">
+                    Delete category
+                  </button>
+                </div>
+                {isOpen && (
+                  <div className="flex flex-wrap gap-1.5 pb-2">
+                    {icons.map((icon) => (
+                      <div key={icon.id} className="group relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={icon.path} alt="" className="h-8 w-8 rounded border border-neutral-800 object-cover" />
+                        <button
+                          onClick={() => deleteIcon(icon.id)}
+                          title="Remove"
+                          className="absolute -top-1.5 -right-1.5 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-red-600 hover:text-white text-[10px] leading-none"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Card>
