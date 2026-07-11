@@ -1,13 +1,13 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "./db";
 import { ACCENT_COLORS, DEFAULT_ACCENT_COLOR } from "./accent-colors";
+import { GRID_PATTERN_OPTIONS } from "./grid-patterns";
 
 export const COLOR_SCHEMES = ["dark", "light"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
-export const GRID_PATTERNS = ["none", "dots", "grid", "diagonal"] as const;
 export type ColorScheme = (typeof COLOR_SCHEMES)[number];
 export type Density = (typeof DENSITIES)[number];
-export type GridPattern = (typeof GRID_PATTERNS)[number];
+export type GridPattern = string;
 
 async function upsertSetting(field: "accentColor" | "colorScheme" | "density" | "gridPattern", value: string) {
   await prisma.settings.upsert({
@@ -90,7 +90,7 @@ export async function getGridPattern(): Promise<GridPattern> {
 }
 
 export async function setGridPattern(value: string): Promise<GridPattern> {
-  if (!GRID_PATTERNS.includes(value as GridPattern)) {
+  if (!GRID_PATTERN_OPTIONS.some((o) => o.value === value)) {
     throw new Error("Unknown grid pattern");
   }
   await upsertSetting("gridPattern", value);

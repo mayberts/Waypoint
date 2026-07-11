@@ -7,7 +7,7 @@ import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
 import type { BookmarkDTO, IconAssetDTO } from "@/lib/types";
 import { ACCENT_COLORS } from "@/lib/accent-colors";
-import { GRID_PATTERN_OPTIONS } from "@/lib/grid-patterns";
+import { GRID_PATTERN_OPTIONS, GRID_PATTERN_CATEGORIES } from "@/lib/grid-patterns";
 
 const TABS = [
   { id: "connect", label: "Connect" },
@@ -551,24 +551,31 @@ function BackgroundPatternSection() {
   return (
     <Card title="Background pattern">
       <p>Pattern shown behind the bookmark grid.</p>
-      <div className="flex flex-wrap gap-2.5">
-        {GRID_PATTERN_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => choose(option.value)}
-            disabled={saving}
-            title={option.label}
-            className="flex flex-col items-center gap-1 disabled:opacity-50"
-          >
-            <div
-              className="h-14 w-20 rounded-md border-2 bg-[var(--surface-1)]"
-              style={{
-                ...option.style,
-                borderColor: appearance.gridPattern === option.value ? "var(--accent)" : "var(--border)",
-              }}
-            />
-            <span className="text-xs text-[var(--text-faint)]">{option.label}</span>
-          </button>
+      <div className="flex flex-col gap-4">
+        {GRID_PATTERN_CATEGORIES.map((category) => (
+          <div key={category}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-faint)] pb-2">{category}</p>
+            <div className="flex flex-wrap gap-2.5">
+              {GRID_PATTERN_OPTIONS.filter((o) => o.category === category).map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => choose(option.value)}
+                  disabled={saving}
+                  title={option.label}
+                  className="flex flex-col items-center gap-1 disabled:opacity-50"
+                >
+                  <div
+                    className="h-14 w-20 rounded-md border-2 bg-[var(--surface-1)]"
+                    style={{
+                      ...option.style,
+                      borderColor: appearance.gridPattern === option.value ? "var(--accent)" : "var(--border)",
+                    }}
+                  />
+                  <span className="text-xs text-[var(--text-faint)]">{option.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
