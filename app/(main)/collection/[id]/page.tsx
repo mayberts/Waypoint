@@ -10,6 +10,11 @@ export default function CollectionPage() {
   const collection = collections.find((c) => c.id === id);
 
   return (
-    <BookmarkGrid title={collection?.name ?? "Collection"} query={{ collectionId: id }} defaultCollectionId={id} />
+    <BookmarkGrid
+      title={collection?.name ?? "Collection"}
+      query={{ collectionId: id }}
+      viewKey={`collection:${id}`}
+      defaultCollectionId={id}
+    />
   );
 }

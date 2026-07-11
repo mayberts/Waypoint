@@ -1,14 +1,8 @@
 "use client";
 
 import type { BookmarkDTO } from "@/lib/types";
-
-function faviconFallbackColor(domain: string | null): string {
-  if (!domain) return "#525252";
-  let hash = 0;
-  for (let i = 0; i < domain.length; i++) hash = (hash * 31 + domain.charCodeAt(i)) >>> 0;
-  const hue = hash % 360;
-  return `hsl(${hue} 45% 40%)`;
-}
+import { faviconFallbackColor } from "@/lib/favicon-color";
+import { Favicon } from "./Favicon";
 
 export function BookmarkCard({ bookmark, onEdit }: { bookmark: BookmarkDTO; onEdit: () => void }) {
   return (
@@ -31,17 +25,7 @@ export function BookmarkCard({ bookmark, onEdit }: { bookmark: BookmarkDTO; onEd
 
       <div className="p-3 flex flex-col gap-1.5 flex-1">
         <div className="flex items-start gap-2">
-          <div className="h-4 w-4 mt-0.5 shrink-0 rounded overflow-hidden">
-            {bookmark.faviconPath ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={bookmark.faviconPath} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <div
-                className="h-full w-full"
-                style={{ background: faviconFallbackColor(bookmark.domain) }}
-              />
-            )}
-          </div>
+          <Favicon faviconPath={bookmark.faviconPath} domain={bookmark.domain} size={16} className="mt-0.5" />
           <a
             href={bookmark.url}
             target="_blank"

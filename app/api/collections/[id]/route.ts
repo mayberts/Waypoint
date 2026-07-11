@@ -7,6 +7,7 @@ const updateSchema = z.object({
   parentId: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
   color: z.string().nullable().optional(),
+  view: z.enum(["cards", "list", "headlines", "moodboard"]).optional(),
 });
 
 async function wouldCreateCycle(collectionId: string, proposedParentId: string): Promise<boolean> {

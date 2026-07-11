@@ -3,5 +3,5 @@
 import { BookmarkGrid } from "@/components/BookmarkGrid";
 
 export default function AllBookmarksPage() {
-  return <BookmarkGrid title="All bookmarks" query={{}} />;
+  return <BookmarkGrid title="All bookmarks" query={{}} viewKey="all" />;
 }

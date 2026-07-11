@@ -3,5 +3,5 @@
 import { BookmarkGrid } from "@/components/BookmarkGrid";
 
 export default function UnsortedPage() {
-  return <BookmarkGrid title="Unsorted" query={{ unsorted: true }} />;
+  return <BookmarkGrid title="Unsorted" query={{ unsorted: true }} viewKey="unsorted" />;
 }

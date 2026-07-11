@@ -12,6 +12,7 @@ model Collection {
   name      String
   icon      String? // emoji, or a /uploads path for a custom collection image
   color     String? // hex color, used when no icon is set
+  view      String   @default("cards") // "cards" | "list" | "headlines" | "moodboard"
   parentId  String?
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
