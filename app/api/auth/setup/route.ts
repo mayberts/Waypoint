@@ -5,7 +5,7 @@ import {
   getSessionSecret,
   isAccountConfigured,
   SESSION_COOKIE,
-  SESSION_COOKIE_OPTIONS,
+  sessionCookieOptions,
 } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -26,6 +26,6 @@ export async function POST(req: NextRequest) {
   const secret = await getSessionSecret();
   const token = await createSessionToken(secret);
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(req));
   return res;
 }

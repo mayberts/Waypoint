@@ -6,16 +6,26 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export { SESSION_COOKIE };
 
-/** `secure` only in production — dev/test runs over plain http://localhost, which
- *  browsers refuse to attach Secure cookies to. Behind a TLS-terminating reverse
- *  proxy in production, the browser's connection is genuinely HTTPS either way. */
-export const SESSION_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: SESSION_TTL_MS / 1000,
-};
+/**
+ * Browsers silently refuse to store `Secure` cookies on a connection that
+ * isn't actually HTTPS. Behind a reverse proxy the app itself only ever sees
+ * plain HTTP from the proxy — checking NODE_ENV isn't enough, since that's
+ * true whether or not the *browser's* connection is HTTPS (e.g. SSL not yet
+ * configured on the proxy, or the app reached directly over HTTP). Trust the
+ * standard X-Forwarded-Proto header a reverse proxy sets, falling back to the
+ * request's own protocol for direct/local access.
+ */
+export function sessionCookieOptions(req: { headers: { get(name: string): string | null }; nextUrl: { protocol: string } }) {
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const isHttps = forwardedProto ? forwardedProto.split(",")[0].trim() === "https" : req.nextUrl.protocol === "https:";
+  return {
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: SESSION_TTL_MS / 1000,
+  };
+}
 
 function hashPassword(password: string): string {
   const salt = randomBytes(16);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionToken, getSessionSecret, verifyCredentials, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
+import { createSessionToken, getSessionSecret, verifyCredentials, SESSION_COOKIE, sessionCookieOptions } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -14,6 +14,6 @@ export async function POST(req: NextRequest) {
   const secret = await getSessionSecret();
   const token = await createSessionToken(secret);
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(req));
   return res;
 }
