@@ -15,6 +15,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 const updateSchema = z.object({
+  url: z.string().trim().url().max(2000).optional(),
   title: z.string().trim().min(1).max(500).optional(),
   description: z.string().trim().max(2000).nullable().optional(),
   note: z.string().trim().max(5000).nullable().optional(),
@@ -39,6 +40,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!collection) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
   }
 
+  // Changing the URL invalidates the domain (used for the favicon fallback
+  // and display) and any prior broken-link result, which was for the old URL.
+  const data: typeof rest & { domain?: string; isBroken?: boolean; linkCheckedAt?: null } = { ...rest };
+  if (rest.url && rest.url !== existing.url) {
+    data.domain = new URL(rest.url).hostname;
+    data.isBroken = false;
+    data.linkCheckedAt = null;
+  }
+
   const tagIds = tags !== undefined ? await resolveTagIds(tags) : undefined;
 
   const bookmark = await prisma.$transaction(async (tx) => {
@@ -50,7 +60,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
     return tx.bookmark.update({
       where: { id },
-      data: rest,
+      data,
       include: { tags: { include: { tag: true } } },
     });
   });

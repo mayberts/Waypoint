@@ -19,6 +19,7 @@ export function BookmarkEditDrawer({
   onDeleted: (id: string) => void;
 }) {
   const { refreshTags } = useAppData();
+  const [url, setUrl] = useState(bookmark.url);
   const [title, setTitle] = useState(bookmark.title);
   const [note, setNote] = useState(bookmark.note ?? "");
   const [collectionId, setCollectionId] = useState<string | null>(bookmark.collectionId);
@@ -35,6 +36,7 @@ export function BookmarkEditDrawer({
     setError(null);
     try {
       const updated = await api.patch<BookmarkDTO>(`/api/bookmarks/${bookmark.id}`, {
+        url,
         title,
         note: note || null,
         collectionId,
@@ -84,9 +86,26 @@ export function BookmarkEditDrawer({
           </button>
         </div>
 
-        <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--text-faint)] truncate hover:underline">
-          {bookmark.url}
-        </a>
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-[var(--text-faint)]">URL</label>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[var(--text-faint)] hover:text-[var(--text-secondary)] hover:underline"
+            >
+              Open ↗
+            </a>
+          </div>
+          <input
+            type="url"
+            required
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="mt-1 w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
+          />
+        </div>
 
         <div>
           <label className="text-xs text-[var(--text-faint)]">Cover image</label>
