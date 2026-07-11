@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
 
   const bookmarks = await prisma.bookmark.findMany({
     where: {
+      deletedAt: null,
       ...(unsorted ? { collectionId: null } : collectionId ? { collectionId } : {}),
       ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
     },

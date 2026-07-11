@@ -58,11 +58,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json(serializeBookmark(bookmark));
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// Soft-deletes by default (moves to trash); pass ?permanent=1 to remove for good.
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const existing = await prisma.bookmark.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.bookmark.delete({ where: { id } });
+  if (req.nextUrl.searchParams.get("permanent") === "1") {
+    await prisma.bookmark.delete({ where: { id } });
+  } else {
+    await prisma.bookmark.update({ where: { id }, data: { deletedAt: new Date() } });
+  }
   return NextResponse.json({ ok: true });
 }

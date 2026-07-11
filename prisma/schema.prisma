@@ -35,6 +35,7 @@ model Bookmark {
   faviconCheckedAt DateTime? // set on every refresh attempt (success or fail) so failures aren't retried forever
   coverImagePath   String?
   collectionId     String?
+  deletedAt        DateTime? // soft-delete: set instead of removing the row; excluded from all normal queries
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -42,6 +43,7 @@ model Bookmark {
   tags       BookmarkTag[]
 
   @@index([collectionId])
+  @@index([deletedAt])
 }
 
 model Tag {

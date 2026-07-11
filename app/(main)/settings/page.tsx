@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { api, ApiError } from "@/lib/api-client";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
-import type { IconAssetDTO } from "@/lib/types";
+import type { BookmarkDTO, IconAssetDTO } from "@/lib/types";
 
 export default function SettingsPage() {
   return (
@@ -16,6 +17,8 @@ export default function SettingsPage() {
       <ImportSection />
       <FaviconRefreshSection />
       <IconLibrarySection />
+      <ExportSection />
+      <TrashSection />
     </div>
   );
 }
@@ -386,6 +389,45 @@ function IconLibrarySection() {
           ))}
         </div>
       )}
+    </Card>
+  );
+}
+
+function ExportSection() {
+  return (
+    <Card title="Export bookmarks">
+      <p>
+        Download everything as a Netscape Bookmark File (the same .html format Import accepts) — collection
+        structure is preserved as nested folders, and each bookmark&apos;s favicon is embedded directly in the
+        file so it survives the round trip without needing a live fetch.
+      </p>
+      <a
+        href="/api/export"
+        download
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800"
+      >
+        Download export
+      </a>
+    </Card>
+  );
+}
+
+function TrashSection() {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.get<BookmarkDTO[]>("/api/bookmarks/trash").then((r) => setCount(r.length));
+  }, []);
+
+  return (
+    <Card title="Trash">
+      <p>Deleted bookmarks go here first and can be restored, rather than disappearing immediately.</p>
+      <Link
+        href="/trash"
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-neutral-800 hover:bg-neutral-800"
+      >
+        View trash{count !== null ? ` (${count})` : ""}
+      </Link>
     </Card>
   );
 }

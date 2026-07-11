@@ -33,6 +33,7 @@ export interface BookmarkDTO {
   faviconPath: string | null;
   coverImagePath: string | null;
   collectionId: string | null;
+  deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
   tags: TagDTO[];

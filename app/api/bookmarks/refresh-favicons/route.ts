@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { fetchPageMetadata, downloadImage } from "@/lib/metadata";
 import { saveImageBuffer, MAX_FAVICON_BYTES } from "@/lib/uploads";
 
-const UNCHECKED_WITHOUT_FAVICON = { faviconPath: null, faviconCheckedAt: null } as const;
+const UNCHECKED_WITHOUT_FAVICON = { faviconPath: null, faviconCheckedAt: null, deletedAt: null } as const;
 
 // How many bookmarks still need a favicon check — used to show progress
 // and to decide whether "Refresh favicons" has anything to do.

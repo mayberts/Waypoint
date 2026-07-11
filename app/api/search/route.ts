@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const ranked = await prisma.$queryRawUnsafe<{ id: string }[]>(
     `SELECT id FROM "Bookmark"
-     WHERE ${SEARCH_EXPR} @@ websearch_to_tsquery('english', $1)
+     WHERE "deletedAt" IS NULL AND ${SEARCH_EXPR} @@ websearch_to_tsquery('english', $1)
      ORDER BY ts_rank(${SEARCH_EXPR}, websearch_to_tsquery('english', $1)) DESC
      LIMIT 200`,
     q
@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
   const bookmarks = await prisma.bookmark.findMany({
     where: {
       id: { in: ids },
+      deletedAt: null,
       ...(collectionId ? { collectionId } : {}),
       ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
     },

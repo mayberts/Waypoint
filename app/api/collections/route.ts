@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   const collections = await prisma.collection.findMany({
     orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
-    include: { _count: { select: { bookmarks: true } } },
+    include: { _count: { select: { bookmarks: { where: { deletedAt: null } } } } },
   });
   return NextResponse.json(collections);
 }
