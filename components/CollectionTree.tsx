@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -21,6 +21,8 @@ import { IconPicker } from "./IconPicker";
 
 type DropZone = "before" | "nest" | "after";
 
+const COLLAPSED_STORAGE_KEY = "waypoint-collapsed-collections";
+
 export function CollectionTree({ selectedId }: { selectedId?: string }) {
   const { collections, refreshCollections } = useAppData();
   const router = useRouter();
@@ -29,9 +31,41 @@ export function CollectionTree({ selectedId }: { selectedId?: string }) {
   const [dropZone, setDropZone] = useState<DropZone | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- load-on-mount from localStorage
+      if (raw) setCollapsedIds(new Set(JSON.parse(raw)));
+    } catch {
+      // ignore malformed storage
+    }
+  }, []);
+
+  function toggleCollapse(id: string) {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
 
   const tree = useMemo(() => buildTree(collections), [collections]);
   const flat = useMemo(() => flattenTree(tree), [tree]);
+  const visibleFlat = useMemo(() => {
+    const out: TreeNode[] = [];
+    const walk = (list: TreeNode[]) => {
+      for (const n of list) {
+        out.push(n);
+        if (!collapsedIds.has(n.id)) walk(n.children);
+      }
+    };
+    walk(tree);
+    return out;
+  }, [tree, collapsedIds]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -136,7 +170,7 @@ export function CollectionTree({ selectedId }: { selectedId?: string }) {
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
       >
-        {flat.map((node) => (
+        {visibleFlat.map((node) => (
           <Row
             key={node.id}
             node={node}
@@ -145,6 +179,8 @@ export function CollectionTree({ selectedId }: { selectedId?: string }) {
             dropIndicator={overId === node.id && dragId !== node.id ? dropZone : null}
             editing={editingId === node.id}
             editValue={editValue}
+            collapsed={collapsedIds.has(node.id)}
+            onToggleCollapse={() => toggleCollapse(node.id)}
             onStartEdit={() => {
               setEditingId(node.id);
               setEditValue(node.name);
@@ -169,6 +205,8 @@ function Row({
   dropIndicator,
   editing,
   editValue,
+  collapsed,
+  onToggleCollapse,
   onStartEdit,
   onEditChange,
   onCommitEdit,
@@ -183,6 +221,8 @@ function Row({
   dropIndicator: DropZone | null;
   editing: boolean;
   editValue: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
   onStartEdit: () => void;
   onEditChange: (v: string) => void;
   onCommitEdit: () => void;
@@ -224,6 +264,21 @@ function Row({
       >
         ⠿
       </span>
+
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleCollapse();
+        }}
+        className={`flex items-center justify-center h-4 w-4 shrink-0 text-neutral-500 hover:text-neutral-200 ${
+          node.children.length === 0 ? "invisible" : ""
+        }`}
+        tabIndex={node.children.length === 0 ? -1 : 0}
+        title={collapsed ? "Expand" : "Collapse"}
+      >
+        <span className={`inline-block text-[10px] transition-transform ${collapsed ? "" : "rotate-90"}`}>▶</span>
+      </button>
 
       <span className="relative shrink-0">
         <button
