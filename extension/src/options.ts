@@ -7,6 +7,12 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return Object.assign(document.createElement(tag), props);
 }
 
+function logoHeading(text: string): HTMLHeadingElement {
+  const h1 = el("h1", { textContent: text });
+  h1.prepend(el("img", { src: "icons/icon48.png", width: 20, height: 20, alt: "" }));
+  return h1;
+}
+
 async function main() {
   const app = document.getElementById("app")!;
   const existing = await getConfig();
@@ -34,7 +40,7 @@ async function main() {
   });
 
   app.append(
-    el("h1", { textContent: "⚓ Waypoint" }),
+    logoHeading("Waypoint"),
     el("label", { textContent: "Server URL" }),
     serverInput,
     el("label", { textContent: "API token" }),

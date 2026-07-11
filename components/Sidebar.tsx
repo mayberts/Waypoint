@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { CollectionTree } from "./CollectionTree";
+import { Logo } from "./Logo";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -20,8 +21,9 @@ export function Sidebar() {
   return (
     <aside className="w-64 shrink-0 h-full bg-neutral-950 border-r border-neutral-800 flex flex-col">
       <div className="px-3 pt-4">
-        <Link href="/" className="text-base font-semibold tracking-tight text-white px-1">
-          ⚓ Waypoint
+        <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight text-white px-1">
+          <Logo size={22} />
+          Waypoint
         </Link>
       </div>
 

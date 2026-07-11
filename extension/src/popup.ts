@@ -13,6 +13,12 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return Object.assign(document.createElement(tag), props);
 }
 
+function logoHeading(text: string): HTMLHeadingElement {
+  const h1 = el("h1", { textContent: text });
+  h1.prepend(el("img", { src: "icons/icon48.png", width: 18, height: 18, alt: "" }));
+  return h1;
+}
+
 function flattenForSelect(collections: Collection[]): { id: string; label: string }[] {
   const byParent = new Map<string | null, Collection[]>();
   for (const c of collections) {
@@ -37,7 +43,7 @@ async function main() {
 
   if (!config) {
     app.append(
-      el("h1", { textContent: "⚓ Save to Waypoint" }),
+      logoHeading("Save to Waypoint"),
       el("p", { textContent: "Not configured yet." }),
       el("a", {
         href: "#",
@@ -64,7 +70,7 @@ async function main() {
   const status = el("div", { className: "status" });
 
   app.append(
-    el("h1", { textContent: "⚓ Save to Waypoint" }),
+    logoHeading("Save to Waypoint"),
     urlDiv,
     titleInput,
     collectionSelect,

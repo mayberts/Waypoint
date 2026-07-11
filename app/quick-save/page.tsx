@@ -6,6 +6,7 @@ import { api, ApiError } from "@/lib/api-client";
 import type { BookmarkDTO } from "@/lib/types";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { TagInput } from "@/components/TagInput";
+import { Logo } from "@/components/Logo";
 
 function QuickSaveForm() {
   const searchParams = useSearchParams();
@@ -42,7 +43,10 @@ function QuickSaveForm() {
 
   return (
     <form onSubmit={submit} className="w-full max-w-sm flex flex-col gap-3">
-      <h1 className="text-sm font-semibold text-neutral-100">⚓ Save to Waypoint</h1>
+      <h1 className="flex items-center gap-2 text-sm font-semibold text-neutral-100">
+        <Logo size={18} />
+        Save to Waypoint
+      </h1>
       <p className="text-xs text-neutral-500 truncate">{url}</p>
 
       <input
