@@ -22,6 +22,7 @@ export function IconPicker({
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const customCategories = useMemo(() => {
     const byCategory = new Map<string, { path: string; filename: string }[]>();
@@ -32,6 +33,32 @@ export function IconPicker({
     }
     return Array.from(byCategory.entries()).map(([label, icons]) => ({ label, icons }));
   }, [iconAssets]);
+
+  const q = query.trim().toLowerCase();
+
+  const filteredCustomCategories = useMemo(() => {
+    if (!q) return customCategories;
+    return customCategories
+      .map((category) => {
+        const categoryMatches = category.label.toLowerCase().includes(q);
+        const icons = categoryMatches
+          ? category.icons
+          : category.icons.filter((icon) => icon.filename.toLowerCase().includes(q));
+        return { ...category, icons };
+      })
+      .filter((category) => category.icons.length > 0);
+  }, [customCategories, q]);
+
+  const filteredEmojiCategories = useMemo(() => {
+    if (!q) return EMOJI_CATEGORIES;
+    return EMOJI_CATEGORIES.map((category) => {
+      const categoryMatches = category.label.toLowerCase().includes(q);
+      const emoji = categoryMatches ? category.emoji : category.emoji.filter((e) => e === query.trim());
+      return { ...category, emoji };
+    }).filter((category) => category.emoji.length > 0);
+  }, [q, query]);
+
+  const noResults = q.length > 0 && filteredCustomCategories.length === 0 && filteredEmojiCategories.length === 0;
 
   async function pick(icon: string) {
     const updated = await api.patch<CollectionDTO>(`/api/collections/${collectionId}`, { icon });
@@ -73,8 +100,19 @@ export function IconPicker({
         style={{ top: anchorRect.bottom + 4, left, width }}
         className="fixed z-50 rounded-lg border border-neutral-800 bg-neutral-950 shadow-xl flex flex-col"
       >
+        <div className="p-2.5 pb-0 shrink-0">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search icons…"
+            autoFocus
+            className="w-full rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-600"
+          />
+        </div>
+
         <div className="overflow-y-auto p-2.5" style={{ maxHeight }}>
-          {customCategories.map((category) => (
+          {filteredCustomCategories.map((category) => (
             <div key={category.label} className="mb-2 last:mb-0">
               <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                 {category.label}
@@ -94,9 +132,11 @@ export function IconPicker({
               </div>
             </div>
           ))}
-          {customCategories.length > 0 && <div className="border-t border-neutral-800 my-2" />}
+          {filteredCustomCategories.length > 0 && filteredEmojiCategories.length > 0 && (
+            <div className="border-t border-neutral-800 my-2" />
+          )}
 
-          {EMOJI_CATEGORIES.map((category) => (
+          {filteredEmojiCategories.map((category) => (
             <div key={category.label} className="mb-2 last:mb-0">
               <div className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                 {category.label}
@@ -115,6 +155,8 @@ export function IconPicker({
               </div>
             </div>
           ))}
+
+          {noResults && <p className="px-1 py-4 text-center text-xs text-neutral-500">No icons found.</p>}
         </div>
 
         {error && <p className="text-xs text-red-400 px-2.5 pt-2">{error}</p>}
