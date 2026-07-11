@@ -6,5 +6,8 @@ set -eu
 echo ">> applying database migrations"
 npx prisma migrate deploy
 
+echo ">> seeding built-in icon library"
+node prisma/seed-icons.mjs
+
 echo ">> starting server"
 exec node_modules/.bin/next start -p "${PORT:-3000}"

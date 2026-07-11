@@ -65,8 +65,9 @@ model BookmarkTag {
 }
 
 model Settings {
-  id       Int    @id @default(1)
-  apiToken String
+  id          Int     @id @default(1)
+  apiToken    String
+  iconsSeeded Boolean @default(false)
 }
 
 // User-uploaded icons for the collection icon picker, organized into

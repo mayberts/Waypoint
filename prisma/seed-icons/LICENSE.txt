@@ -1,0 +1,7 @@
+Twemoji graphics
+Copyright 2020 Twitter, Inc and other contributors
+Licensed under CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/
+Source: https://github.com/jdecked/twemoji
+
+Attribution is also given in the project README, per Twemoji's own
+attribution guidance (a mention in a README or About/Settings section).
