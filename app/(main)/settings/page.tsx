@@ -23,7 +23,7 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<TabId>("connect");
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 max-w-2xl flex flex-col gap-6 sm:px-6 sm:py-6">
+    <div className="flex-1 overflow-y-auto px-4 py-4 max-w-5xl flex flex-col gap-6 sm:px-6 sm:py-6">
       <h1 className="text-lg font-semibold text-[var(--text-primary)]">Settings</h1>
 
       <div className="flex gap-1 shrink-0 overflow-x-auto border-b border-[var(--border)] sticky top-0 bg-[var(--surface-1)] z-10">
@@ -42,34 +42,37 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <div className="flex flex-col gap-10">
-        {tab === "connect" && (
-          <>
-            <ApiTokenSection />
-            <BookmarkletSection />
-            <ExtensionSection />
-          </>
-        )}
-        {tab === "data" && (
-          <>
-            <ImportSection />
-            <ExportSection />
-            <FaviconRefreshSection />
-            <CoverRefreshSection />
-            <BrokenLinkSection />
-            <TrashSection />
-          </>
-        )}
-        {tab === "icons" && <IconLibrarySection />}
-        {tab === "appearance" && (
-          <>
-            <AppearanceSection />
-            <BackgroundPatternSection />
-            <DensitySection />
-          </>
-        )}
-        {tab === "account" && <AccountSection />}
-      </div>
+      {tab === "icons" ? (
+        <IconLibrarySection />
+      ) : (
+        <div className="grid gap-6 items-start lg:grid-cols-2">
+          {tab === "connect" && (
+            <>
+              <ApiTokenSection />
+              <BookmarkletSection />
+              <ExtensionSection />
+            </>
+          )}
+          {tab === "data" && (
+            <>
+              <ImportSection />
+              <ExportSection />
+              <FaviconRefreshSection />
+              <CoverRefreshSection />
+              <BrokenLinkSection />
+              <TrashSection />
+            </>
+          )}
+          {tab === "appearance" && (
+            <>
+              <AppearanceSection />
+              <BackgroundPatternSection />
+              <DensitySection />
+            </>
+          )}
+          {tab === "account" && <AccountSection />}
+        </div>
+      )}
     </div>
   );
 }
