@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Collection {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String? // emoji, or a /uploads path for a custom collection image
+  color     String? // hex color, used when no icon is set
+  parentId  String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  parent    Collection?  @relation("CollectionChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Collection[] @relation("CollectionChildren")
+  bookmarks Bookmark[]
+
+  @@index([parentId])
+}
+
+model Bookmark {
+  id             String   @id @default(cuid())
+  url            String
+  title          String
+  description    String?
+  note           String?
+  domain         String?
+  faviconPath    String?
+  coverImagePath String?
+  collectionId   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  collection Collection?   @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  tags       BookmarkTag[]
+
+  @@index([collectionId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+
+  bookmarks BookmarkTag[]
+}
+
+model BookmarkTag {
+  bookmarkId String
+  tagId      String
+
+  bookmark Bookmark @relation(fields: [bookmarkId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookmarkId, tagId])
+  @@index([tagId])
+}
+
+model Settings {
+  id       Int    @id @default(1)
+  apiToken String
+}

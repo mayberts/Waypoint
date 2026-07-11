@@ -1,0 +1,30 @@
+export interface CollectionDTO {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  parentId: string | null;
+  sortOrder: number;
+  createdAt: string;
+  _count?: { bookmarks: number };
+}
+
+export interface TagDTO {
+  id: string;
+  name: string;
+}
+
+export interface BookmarkDTO {
+  id: string;
+  url: string;
+  title: string;
+  description: string | null;
+  note: string | null;
+  domain: string | null;
+  faviconPath: string | null;
+  coverImagePath: string | null;
+  collectionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  tags: TagDTO[];
+}

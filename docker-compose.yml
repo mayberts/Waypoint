@@ -1,0 +1,37 @@
+# Default compose: build from source with a named volume.
+# Runs anywhere (Docker Desktop on Windows, Linux, etc.):
+#   docker compose up -d --build   ->  http://localhost:8745
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: waypoint
+      POSTGRES_PASSWORD: waypoint
+      POSTGRES_DB: waypoint
+    volumes:
+      - waypoint-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waypoint"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build: .
+    image: waypoint:latest
+    environment:
+      DATABASE_URL: postgresql://waypoint:waypoint@db:5432/waypoint
+      UPLOADS_DIR: /data/uploads
+    volumes:
+      - waypoint-data:/data
+    ports:
+      - "8745:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  waypoint-db:
+  waypoint-data:
