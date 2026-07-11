@@ -4,9 +4,32 @@ import type { BookmarkDTO } from "@/lib/types";
 import { faviconFallbackColor } from "@/lib/favicon-color";
 import { Favicon } from "./Favicon";
 
-export function BookmarkCard({ bookmark, onEdit }: { bookmark: BookmarkDTO; onEdit: () => void }) {
+export function BookmarkCard({
+  bookmark,
+  onEdit,
+  selected,
+  onToggleSelect,
+}: {
+  bookmark: BookmarkDTO;
+  onEdit: () => void;
+  selected: boolean;
+  onToggleSelect: () => void;
+}) {
   return (
-    <div className="group relative flex flex-col rounded-lg border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden hover:border-[var(--border-strong)] transition-colors">
+    <div
+      className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden transition-colors ${
+        selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={onToggleSelect}
+        onClick={(e) => e.stopPropagation()}
+        className={`absolute top-2 left-2 z-10 h-4 w-4 rounded cursor-pointer accent-[var(--accent)] ${
+          selected ? "" : "opacity-0 group-hover:opacity-100"
+        }`}
+      />
       <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="block">
         <div className="h-28 w-full bg-[var(--surface-2)] overflow-hidden">
           {bookmark.coverImagePath ? (

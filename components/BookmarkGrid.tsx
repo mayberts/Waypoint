@@ -12,6 +12,7 @@ import { BookmarkMoodboard } from "./BookmarkMoodboard";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { BookmarkEditDrawer } from "./BookmarkEditDrawer";
 import { ViewSwitcher } from "./ViewSwitcher";
+import { BulkActionBar } from "./BulkActionBar";
 import { useAppData } from "./providers";
 
 const COLLECTION_VIEW_PREFIX = "collection:";
@@ -32,6 +33,7 @@ export function BookmarkGrid({
   const { collections, refreshCollections, appearance } = useAppData();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<BookmarkDTO | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   // Starts at "cards" to match the server-rendered shell (localStorage isn't
   // available during SSR), then picks up the real stored preference on mount.
   const [localView, setLocalView] = useState<ViewMode>("cards");
@@ -83,6 +85,25 @@ export function BookmarkGrid({
     refreshCollections();
   }
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelected(new Set());
+  }
+
+  function handleBulkDone() {
+    clearSelection();
+    refresh();
+    refreshCollections();
+  }
+
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
@@ -98,28 +119,57 @@ export function BookmarkGrid({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6" style={gridPatternStyle(appearance.gridPattern)}>
-        {loading ? (
-          <p className="text-sm text-[var(--text-faint)]">Loading…</p>
-        ) : bookmarks.length === 0 ? (
-          <p className="text-sm text-[var(--text-faint)]">No bookmarks here yet.</p>
-        ) : view === "cards" ? (
-          <div
-            className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
-            style={{ gap: "var(--card-gap)" }}
-          >
-            {bookmarks.map((b) => (
-              <BookmarkCard key={b.id} bookmark={b} onEdit={() => setEditing(b)} />
-            ))}
-          </div>
-        ) : view === "moodboard" ? (
-          <BookmarkMoodboard bookmarks={bookmarks} onEdit={setEditing} />
-        ) : (
-          <div className="flex flex-col">
-            {bookmarks.map((b) => (
-              <BookmarkRow key={b.id} bookmark={b} dense={view === "headlines"} onEdit={() => setEditing(b)} />
-            ))}
-          </div>
+      <div className="flex-1 overflow-y-auto px-6 pb-6 flex flex-col" style={gridPatternStyle(appearance.gridPattern)}>
+        <div className="flex-1">
+          {loading ? (
+            <p className="text-sm text-[var(--text-faint)]">Loading…</p>
+          ) : bookmarks.length === 0 ? (
+            <p className="text-sm text-[var(--text-faint)]">No bookmarks here yet.</p>
+          ) : view === "cards" ? (
+            <div
+              className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
+              style={{ gap: "var(--card-gap)" }}
+            >
+              {bookmarks.map((b) => (
+                <BookmarkCard
+                  key={b.id}
+                  bookmark={b}
+                  onEdit={() => setEditing(b)}
+                  selected={selected.has(b.id)}
+                  onToggleSelect={() => toggleSelect(b.id)}
+                />
+              ))}
+            </div>
+          ) : view === "moodboard" ? (
+            <BookmarkMoodboard
+              bookmarks={bookmarks}
+              onEdit={setEditing}
+              selected={selected}
+              onToggleSelect={toggleSelect}
+            />
+          ) : (
+            <div className="flex flex-col">
+              {bookmarks.map((b) => (
+                <BookmarkRow
+                  key={b.id}
+                  bookmark={b}
+                  dense={view === "headlines"}
+                  onEdit={() => setEditing(b)}
+                  selected={selected.has(b.id)}
+                  onToggleSelect={() => toggleSelect(b.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {selected.size > 0 && (
+          <BulkActionBar
+            count={selected.size}
+            selectedIds={Array.from(selected)}
+            onClear={clearSelection}
+            onDone={handleBulkDone}
+          />
         )}
       </div>
 

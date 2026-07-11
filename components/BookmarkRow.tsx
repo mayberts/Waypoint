@@ -7,16 +7,28 @@ export function BookmarkRow({
   bookmark,
   dense,
   onEdit,
+  selected,
+  onToggleSelect,
 }: {
   bookmark: BookmarkDTO;
   dense: boolean;
   onEdit: () => void;
+  selected: boolean;
+  onToggleSelect: () => void;
 }) {
   return (
     <div
-      className="group flex items-center gap-3 border-b border-[var(--border-a70)] hover:bg-[var(--surface-1-a60)]"
+      className={`group flex items-center gap-3 border-b border-[var(--border-a70)] hover:bg-[var(--surface-1-a60)] ${
+        selected ? "bg-[var(--surface-1-a60)]" : ""
+      }`}
       style={{ paddingTop: dense ? "0.5rem" : "var(--list-row-py)", paddingBottom: dense ? "0.5rem" : "var(--list-row-py)" }}
     >
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={onToggleSelect}
+        className={`shrink-0 h-4 w-4 rounded cursor-pointer accent-[var(--accent)] ${selected ? "" : "opacity-0 group-hover:opacity-100"}`}
+      />
       <Favicon
         faviconPath={bookmark.faviconPath}
         domain={bookmark.domain}
