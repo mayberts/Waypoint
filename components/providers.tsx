@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { api } from "@/lib/api-client";
 import type { CollectionDTO, TagDTO, IconAssetDTO, SavedSearchDTO } from "@/lib/types";
 import { accentColorByValue, DEFAULT_ACCENT_COLOR } from "@/lib/accent-colors";
+import { loadSidebarPrefs, saveSidebarPrefs, DEFAULT_SIDEBAR_PREFS, type SidebarPrefs } from "@/lib/sidebar-prefs";
 
 interface AppearanceSettings {
   accentColor: string;
@@ -32,6 +33,8 @@ interface AppData {
   refreshIconAssets: () => Promise<void>;
   refreshSavedSearches: () => Promise<void>;
   setAppearance: (patch: Partial<AppearanceSettings>) => void;
+  sidebarPrefs: SidebarPrefs;
+  setSidebarPrefs: (patch: Partial<SidebarPrefs>) => void;
   /** Bumped whenever a bookmark moves outside of the currently-mounted grid's own actions (e.g. a sidebar drag-drop), so grids know to refetch. */
   bookmarksVersion: number;
   notifyBookmarksChanged: () => void;
@@ -61,6 +64,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [iconAssets, setIconAssets] = useState<IconAssetDTO[]>([]);
   const [savedSearches, setSavedSearches] = useState<SavedSearchDTO[]>([]);
   const [appearance, setAppearanceState] = useState<AppearanceSettings>(DEFAULT_APPEARANCE);
+  // Starts at the defaults (all shown) to match the server-rendered shell —
+  // localStorage isn't available during SSR — then reads the real saved
+  // preference after mount.
+  const [sidebarPrefs, setSidebarPrefsState] = useState<SidebarPrefs>(DEFAULT_SIDEBAR_PREFS);
   const [loading, setLoading] = useState(true);
   const [bookmarksVersion, setBookmarksVersion] = useState(0);
   const notifyBookmarksChanged = useCallback(() => setBookmarksVersion((v) => v + 1), []);
@@ -93,6 +100,19 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       applyAppearance(next);
       return next;
     });
+  }, []);
+
+  const setSidebarPrefs = useCallback((patch: Partial<SidebarPrefs>) => {
+    setSidebarPrefsState((prev) => {
+      const next = { ...prev, ...patch };
+      saveSidebarPrefs(next);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading a client-only localStorage preference after mount
+    setSidebarPrefsState(loadSidebarPrefs());
   }, []);
 
   // In "auto" mode, follow the OS preference live — not just at page load —
@@ -132,6 +152,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         refreshIconAssets,
         refreshSavedSearches,
         setAppearance,
+        sidebarPrefs,
+        setSidebarPrefs,
         bookmarksVersion,
         notifyBookmarksChanged,
       }}

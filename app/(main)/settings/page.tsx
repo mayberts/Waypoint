@@ -71,6 +71,7 @@ export default function SettingsPage() {
             <>
               <AppearanceSection />
               <DensitySection />
+              <SidebarSection />
             </>
           )}
           {tab === "account" && <AccountSection />}
@@ -1041,6 +1042,44 @@ function DensitySection() {
         </div>
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+function SidebarSection() {
+  const { sidebarPrefs, setSidebarPrefs } = useAppData();
+
+  const toggles: { key: keyof typeof sidebarPrefs; label: string }[] = [
+    { key: "showStats", label: "Stats" },
+    { key: "showSmartBroken", label: "Broken links" },
+    { key: "showSmartRecent", label: "Added this week" },
+    { key: "showSmartUntagged", label: "Untagged" },
+  ];
+
+  return (
+    <Card title="Sidebar">
+      <p className="text-xs text-[var(--text-faint)] pb-1">
+        Choose which optional links show in the sidebar. Collections and Unsorted always show.
+      </p>
+      {toggles.map(({ key, label }) => (
+        <div key={key} className="flex items-center justify-between">
+          <p className="text-[var(--text-secondary)]">{label}</p>
+          <button
+            onClick={() => setSidebarPrefs({ [key]: !sidebarPrefs[key] })}
+            role="switch"
+            aria-checked={sidebarPrefs[key]}
+            className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+              sidebarPrefs[key] ? "bg-[var(--accent)]" : "bg-[var(--surface-2)]"
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                sidebarPrefs[key] ? "translate-x-5" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
+      ))}
     </Card>
   );
 }

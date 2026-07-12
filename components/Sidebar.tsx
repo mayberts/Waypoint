@@ -14,6 +14,8 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const { sidebarPrefs } = useAppData();
+  const anySmartShown = sidebarPrefs.showSmartBroken || sidebarPrefs.showSmartRecent || sidebarPrefs.showSmartUntagged;
 
   const collectionId = pathname?.startsWith("/collection/") ? pathname.split("/")[2] : undefined;
 
@@ -53,26 +55,36 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
           All bookmarks
         </SidebarLink>
         <UnsortedLink active={pathname === "/unsorted"} />
-        <SidebarLink href="/stats" active={pathname === "/stats"} icon="📊">
-          Stats
-        </SidebarLink>
+        {sidebarPrefs.showStats && (
+          <SidebarLink href="/stats" active={pathname === "/stats"} icon="📊">
+            Stats
+          </SidebarLink>
+        )}
       </nav>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3">
-        <div className="flex flex-col gap-0.5">
-          <div className="px-2 pt-3 pb-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Smart</span>
+        {anySmartShown && (
+          <div className="flex flex-col gap-0.5">
+            <div className="px-2 pt-3 pb-1">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Smart</span>
+            </div>
+            {sidebarPrefs.showSmartBroken && (
+              <SidebarLink href="/smart/broken" active={pathname === "/smart/broken"} icon="🔴">
+                Broken links
+              </SidebarLink>
+            )}
+            {sidebarPrefs.showSmartRecent && (
+              <SidebarLink href="/smart/recent" active={pathname === "/smart/recent"} icon="🆕">
+                Added this week
+              </SidebarLink>
+            )}
+            {sidebarPrefs.showSmartUntagged && (
+              <SidebarLink href="/smart/untagged" active={pathname === "/smart/untagged"} icon="🏷️">
+                Untagged
+              </SidebarLink>
+            )}
           </div>
-          <SidebarLink href="/smart/broken" active={pathname === "/smart/broken"} icon="🔴">
-            Broken links
-          </SidebarLink>
-          <SidebarLink href="/smart/recent" active={pathname === "/smart/recent"} icon="🆕">
-            Added this week
-          </SidebarLink>
-          <SidebarLink href="/smart/untagged" active={pathname === "/smart/untagged"} icon="🏷️">
-            Untagged
-          </SidebarLink>
-        </div>
+        )}
 
         <SavedSearches />
 
