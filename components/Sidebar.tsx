@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useDndContext, useDroppable } from "@dnd-kit/core";
 import { CollectionTree } from "./CollectionTree";
 import { Logo } from "./Logo";
+import { UNSORTED_DROP_ID, parseBookmarkDndId } from "@/lib/dnd-ids";
 
 export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const pathname = usePathname();
@@ -48,9 +50,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
         <SidebarLink href="/" active={pathname === "/"} icon="🔖">
           All bookmarks
         </SidebarLink>
-        <SidebarLink href="/unsorted" active={pathname === "/unsorted"} icon="📥">
-          Unsorted
-        </SidebarLink>
+        <UnsortedLink active={pathname === "/unsorted"} />
         <SidebarLink href="/stats" active={pathname === "/stats"} icon="📊">
           Stats
         </SidebarLink>
@@ -66,6 +66,21 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
         </SidebarLink>
       </div>
     </aside>
+  );
+}
+
+function UnsortedLink({ active }: { active: boolean }) {
+  const { setNodeRef, isOver } = useDroppable({ id: UNSORTED_DROP_ID });
+  const { active: dragActive } = useDndContext();
+  const draggingBookmark = !!parseBookmarkDndId(dragActive?.id);
+
+  return (
+    <span ref={setNodeRef} className="relative block rounded-md">
+      {draggingBookmark && isOver && <div className="absolute inset-0.5 rounded-md ring-2 ring-[var(--accent)] pointer-events-none" />}
+      <SidebarLink href="/unsorted" active={active} icon="📥">
+        Unsorted
+      </SidebarLink>
+    </span>
   );
 }
 

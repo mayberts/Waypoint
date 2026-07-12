@@ -31,7 +31,11 @@ export function BookmarkGrid({
   defaultCollectionId?: string | null;
 }) {
   const { bookmarks, loading, refresh } = useBookmarks(query);
-  const { collections, refreshCollections, appearance } = useAppData();
+  const { collections, refreshCollections, appearance, bookmarksVersion } = useAppData();
+  useEffect(() => {
+    if (bookmarksVersion > 0) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on the shared change signal, not on every `refresh` identity change
+  }, [bookmarksVersion]);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<BookmarkDTO | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());

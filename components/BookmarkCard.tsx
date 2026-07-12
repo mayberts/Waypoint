@@ -1,7 +1,10 @@
 "use client";
 
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
 import { faviconFallbackColor } from "@/lib/favicon-color";
+import { bookmarkDndId } from "@/lib/dnd-ids";
 import { Favicon } from "./Favicon";
 
 export function BookmarkCard({
@@ -15,11 +18,20 @@ export function BookmarkCard({
   selected: boolean;
   onToggleSelect: () => void;
 }) {
+  // Only the pointer listeners are spread here, not dnd-kit's `attributes`
+  // (which add role="button"/tabIndex) — there's no KeyboardSensor
+  // registered, so making the whole card a synthetic button would add
+  // nothing but noise to the tab order and screen-reader output.
+  const { listeners, setNodeRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
+
   return (
     <div
-      className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden transition-[color,background-color,border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
-        selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
-      }`}
+      ref={setNodeRef}
+      {...listeners}
+      style={{ transform: CSS.Translate.toString(transform), zIndex: isDragging ? 50 : undefined }}
+      className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden hover:-translate-y-0.5 hover:shadow-lg ${
+        isDragging ? "opacity-40 shadow-2xl" : "transition-[color,background-color,border-color,box-shadow,transform] duration-150"
+      } ${selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"}`}
     >
       <input
         type="checkbox"

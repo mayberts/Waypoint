@@ -30,6 +30,9 @@ interface AppData {
   refreshTags: () => Promise<void>;
   refreshIconAssets: () => Promise<void>;
   setAppearance: (patch: Partial<AppearanceSettings>) => void;
+  /** Bumped whenever a bookmark moves outside of the currently-mounted grid's own actions (e.g. a sidebar drag-drop), so grids know to refetch. */
+  bookmarksVersion: number;
+  notifyBookmarksChanged: () => void;
 }
 
 const AppDataContext = createContext<AppData | null>(null);
@@ -49,6 +52,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [iconAssets, setIconAssets] = useState<IconAssetDTO[]>([]);
   const [appearance, setAppearanceState] = useState<AppearanceSettings>(DEFAULT_APPEARANCE);
   const [loading, setLoading] = useState(true);
+  const [bookmarksVersion, setBookmarksVersion] = useState(0);
+  const notifyBookmarksChanged = useCallback(() => setBookmarksVersion((v) => v + 1), []);
 
   const refreshCollections = useCallback(async () => {
     setCollections(await api.get<CollectionDTO[]>("/api/collections"));
@@ -99,6 +104,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         refreshTags,
         refreshIconAssets,
         setAppearance,
+        bookmarksVersion,
+        notifyBookmarksChanged,
       }}
     >
       {children}

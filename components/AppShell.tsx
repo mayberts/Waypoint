@@ -2,14 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { DndContext, DragEndEvent, PointerSensor, pointerWithin, useSensor, useSensors } from "@dnd-kit/core";
 import { Sidebar } from "./Sidebar";
 import { Logo } from "./Logo";
 import { CommandPalette } from "./CommandPalette";
+import { useAppData } from "./providers";
+import { api } from "@/lib/api-client";
+import { buildTree, flattenTree, descendantIds } from "@/lib/collection-tree";
+import { UNSORTED_DROP_ID, parseBookmarkDndId, parseCollectionDndId } from "@/lib/dnd-ids";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const { collections, refreshCollections, notifyBookmarksChanged } = useAppData();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- close the mobile drawer whenever the route changes
@@ -29,35 +36,104 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // The sidebar's collection tree (drag-to-reorder/nest) and the bookmark
+  // grid (drag-onto-a-collection) both need to see each other's drag
+  // sources/targets, so there's exactly one DndContext for the whole shell —
+  // this handler branches on which kind of item (by its dnd-ids.ts prefix)
+  // was dragged.
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedBookmarkId = parseBookmarkDndId(active.id);
+    if (draggedBookmarkId) {
+      let targetCollectionId: string | null;
+      if (over.id === UNSORTED_DROP_ID) {
+        targetCollectionId = null;
+      } else {
+        const parsed = parseCollectionDndId(over.id);
+        if (!parsed) return; // dropped somewhere that isn't a valid target
+        targetCollectionId = parsed;
+      }
+      await api.patch(`/api/bookmarks/${draggedBookmarkId}`, { collectionId: targetCollectionId });
+      await refreshCollections();
+      notifyBookmarksChanged();
+      return;
+    }
+
+    const draggedCollectionId = parseCollectionDndId(active.id);
+    if (!draggedCollectionId) return;
+    const targetCollectionId = parseCollectionDndId(over.id);
+    if (!targetCollectionId || targetCollectionId === draggedCollectionId) return;
+
+    const flat = flattenTree(buildTree(collections));
+    const draggedNode = flat.find((n) => n.id === draggedCollectionId);
+    const targetNode = flat.find((n) => n.id === targetCollectionId);
+    if (!draggedNode || !targetNode) return;
+    if (descendantIds(draggedNode).has(targetNode.id)) return; // can't drop into your own subtree
+
+    const activeRect = active.rect.current.translated;
+    let zone: "before" | "nest" | "after" = "nest";
+    if (activeRect) {
+      const pointerCenterY = activeRect.top + activeRect.height / 2;
+      const relative = (pointerCenterY - over.rect.top) / over.rect.height;
+      zone = relative < 0.25 ? "before" : relative > 0.75 ? "after" : "nest";
+    }
+
+    const newParentId = zone === "nest" ? targetNode.id : targetNode.parentId;
+    const siblings = collections
+      .filter((c) => (c.parentId ?? null) === (newParentId ?? null) && c.id !== draggedCollectionId)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((c) => c.id);
+
+    let orderedIds: string[];
+    if (zone === "nest") {
+      orderedIds = [...siblings, draggedCollectionId];
+    } else {
+      const idx = siblings.indexOf(targetNode.id);
+      const insertAt = zone === "before" ? idx : idx + 1;
+      orderedIds = [...siblings.slice(0, insertAt), draggedCollectionId, ...siblings.slice(insertAt)];
+    }
+
+    await api.post("/api/collections/reorder", { parentId: newParentId ?? null, orderedIds });
+    await refreshCollections();
+  }
+
   return (
-    <div className="flex h-screen">
-      {open && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setOpen(false)} />}
+    // pointerWithin (not the default rectIntersection) — bookmark cards are
+    // much taller than a sidebar row, so comparing full dragged-rect overlap
+    // would let the card's bulk "claim" a neighboring row even when the
+    // cursor itself is over the intended one.
+    <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragEnd={handleDragEnd}>
+      <div className="flex h-screen">
+        {open && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setOpen(false)} />}
 
-      <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-200 md:static md:z-auto md:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <Sidebar onOpenPalette={() => setPaletteOpen(true)} />
-      </div>
-
-      <div className="flex-1 min-w-0 h-screen overflow-hidden flex flex-col">
-        <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2.5 shrink-0 md:hidden">
-          <button
-            onClick={() => setOpen(true)}
-            aria-label="Open menu"
-            className="flex items-center justify-center h-8 w-8 rounded-md text-[var(--text-body)] hover:bg-[var(--surface-2)] -ml-1"
-          >
-            <span className="text-lg leading-none">☰</span>
-          </button>
-          <Logo size={18} />
-          <span className="text-sm font-semibold text-[var(--text-primary)]">Waypoint</span>
+        <div
+          className={`fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-200 md:static md:z-auto md:translate-x-0 ${
+            open ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <Sidebar onOpenPalette={() => setPaletteOpen(true)} />
         </div>
 
-        <main className="flex-1 min-w-0 overflow-hidden flex">{children}</main>
-      </div>
+        <div className="flex-1 min-w-0 h-screen overflow-hidden flex flex-col">
+          <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2.5 shrink-0 md:hidden">
+            <button
+              onClick={() => setOpen(true)}
+              aria-label="Open menu"
+              className="flex items-center justify-center h-8 w-8 rounded-md text-[var(--text-body)] hover:bg-[var(--surface-2)] -ml-1"
+            >
+              <span className="text-lg leading-none">☰</span>
+            </button>
+            <Logo size={18} />
+            <span className="text-sm font-semibold text-[var(--text-primary)]">Waypoint</span>
+          </div>
 
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
-    </div>
+          <main className="flex-1 min-w-0 overflow-hidden flex">{children}</main>
+        </div>
+
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      </div>
+    </DndContext>
   );
 }

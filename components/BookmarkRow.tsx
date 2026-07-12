@@ -1,6 +1,9 @@
 "use client";
 
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
+import { bookmarkDndId } from "@/lib/dnd-ids";
 import { Favicon } from "./Favicon";
 
 export function BookmarkRow({
@@ -16,12 +19,21 @@ export function BookmarkRow({
   selected: boolean;
   onToggleSelect: () => void;
 }) {
+  const { listeners, setNodeRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
+
   return (
     <div
+      ref={setNodeRef}
+      {...listeners}
       className={`group flex items-center gap-3 border-b border-[var(--border-a70)] transition-colors duration-150 hover:bg-[var(--surface-1-a60)] ${
         selected ? "bg-[var(--surface-1-a60)]" : ""
-      }`}
-      style={{ paddingTop: dense ? "0.5rem" : "var(--list-row-py)", paddingBottom: dense ? "0.5rem" : "var(--list-row-py)" }}
+      } ${isDragging ? "relative opacity-70 bg-[var(--surface-1)] shadow-lg" : ""}`}
+      style={{
+        paddingTop: dense ? "0.5rem" : "var(--list-row-py)",
+        paddingBottom: dense ? "0.5rem" : "var(--list-row-py)",
+        transform: CSS.Translate.toString(transform),
+        zIndex: isDragging ? 50 : undefined,
+      }}
     >
       <input
         type="checkbox"
