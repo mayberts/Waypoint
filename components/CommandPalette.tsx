@@ -127,6 +127,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       { id: "add", label: "Add bookmark…", icon: "➕", onSelect: () => setQuickAdd(true) },
       { id: "home", label: "Go to All bookmarks", icon: "🔖", onSelect: () => go("/") },
       { id: "unsorted", label: "Go to Unsorted", icon: "📥", onSelect: () => go("/unsorted") },
+      { id: "stats", label: "Go to Stats", icon: "📊", onSelect: () => go("/stats") },
       { id: "duplicates", label: "Go to Duplicate bookmarks", icon: "🧬", onSelect: () => go("/duplicates") },
       { id: "trash", label: "Go to Trash", icon: "🗑️", onSelect: () => go("/trash") },
       { id: "settings", label: "Go to Settings", icon: "⚙️", onSelect: () => go("/settings") },

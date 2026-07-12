@@ -51,6 +51,9 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
         <SidebarLink href="/unsorted" active={pathname === "/unsorted"} icon="📥">
           Unsorted
         </SidebarLink>
+        <SidebarLink href="/stats" active={pathname === "/stats"} icon="📊">
+          Stats
+        </SidebarLink>
       </nav>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3">
