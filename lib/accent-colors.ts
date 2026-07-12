@@ -27,6 +27,23 @@ export const ACCENT_COLORS: AccentColor[] = [
 
 export const DEFAULT_ACCENT_COLOR = "blue";
 
+const HEX_COLOR_RE = /^#[0-9a-f]{6}$/i;
+
+/** A custom accent is stored as its literal hex string instead of one of the preset `value`s above. */
+export function isHexColor(value: string): boolean {
+  return HEX_COLOR_RE.test(value);
+}
+
+/** Approximates a "one shade darker" solid-fill color for an arbitrary custom hex, the same role `hexStrong` plays for the presets. */
+export function darkenHex(hex: string, factor = 0.82): string {
+  const n = parseInt(hex.slice(1), 16);
+  const channel = (shift: number) => Math.round(((n >> shift) & 0xff) * factor);
+  return `#${[channel(16), channel(8), channel(0)].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export function accentColorByValue(value: string): AccentColor {
+  if (isHexColor(value)) {
+    return { value, label: "Custom", hex: value, hexStrong: darkenHex(value) };
+  }
   return ACCENT_COLORS.find((c) => c.value === value) ?? ACCENT_COLORS.find((c) => c.value === DEFAULT_ACCENT_COLOR)!;
 }

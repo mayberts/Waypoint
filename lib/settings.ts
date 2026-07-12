@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
-import { ACCENT_COLORS, DEFAULT_ACCENT_COLOR } from "./accent-colors";
+import { ACCENT_COLORS, DEFAULT_ACCENT_COLOR, isHexColor } from "./accent-colors";
 import { GRID_PATTERN_OPTIONS } from "./grid-patterns";
 import type { ScanSummary } from "./scan-jobs";
 
@@ -55,7 +55,7 @@ export async function getAccentColor(): Promise<string> {
 }
 
 export async function setAccentColor(value: string): Promise<string> {
-  if (!ACCENT_COLORS.some((c) => c.value === value)) {
+  if (!ACCENT_COLORS.some((c) => c.value === value) && !isHexColor(value)) {
     throw new Error("Unknown accent color");
   }
   await upsertSetting("accentColor", value);

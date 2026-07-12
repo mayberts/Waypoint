@@ -7,7 +7,7 @@ import { api, ApiError } from "@/lib/api-client";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
 import type { BookmarkDTO, IconAssetDTO, TagDTO } from "@/lib/types";
-import { ACCENT_COLORS } from "@/lib/accent-colors";
+import { ACCENT_COLORS, isHexColor } from "@/lib/accent-colors";
 import { GRID_PATTERN_OPTIONS, GRID_PATTERN_CATEGORIES } from "@/lib/grid-patterns";
 
 const TABS = [
@@ -897,7 +897,7 @@ function AppearanceSection() {
       <div className="pt-2 border-t border-[var(--border)]">
         <p className="text-[var(--text-secondary)] font-medium pb-0.5">Accent color</p>
         <p className="text-xs text-[var(--text-faint)] pb-2">Controls buttons, selection highlights, and interactive elements.</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {ACCENT_COLORS.map((c) => (
             <button
               key={c.value}
@@ -912,7 +912,29 @@ function AppearanceSection() {
               }}
             />
           ))}
+          <label
+            title="Custom color"
+            className="relative h-7 w-7 shrink-0 rounded-full cursor-pointer"
+            style={{
+              background: isHexColor(appearance.accentColor)
+                ? appearance.accentColor
+                : "conic-gradient(from 0deg, #ef4444, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ef4444)",
+              outline: isHexColor(appearance.accentColor) ? "2px solid var(--text-primary)" : "none",
+              outlineOffset: "2px",
+            }}
+          >
+            <input
+              type="color"
+              value={isHexColor(appearance.accentColor) ? appearance.accentColor : "#3b82f6"}
+              onChange={(e) => patch("accentColor", e.target.value)}
+              disabled={saving}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+            />
+          </label>
         </div>
+        {isHexColor(appearance.accentColor) && (
+          <p className="pt-1.5 text-xs text-[var(--text-faint)]">Custom: {appearance.accentColor}</p>
+        )}
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
