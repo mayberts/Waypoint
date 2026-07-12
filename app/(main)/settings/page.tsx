@@ -42,10 +42,10 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {tab === "icons" ? (
-        <IconLibrarySection />
-      ) : (
-        <div className="grid gap-6 items-start lg:grid-cols-2">
+      {tab === "icons" && <IconLibrarySection />}
+
+      {tab !== "icons" && (
+        <div className="columns-1 lg:columns-2 gap-6">
           {tab === "connect" && (
             <>
               <ApiTokenSection />
@@ -67,20 +67,23 @@ export default function SettingsPage() {
           {tab === "appearance" && (
             <>
               <AppearanceSection />
-              <BackgroundPatternSection />
               <DensitySection />
             </>
           )}
           {tab === "account" && <AccountSection />}
         </div>
       )}
+
+      {/* Full-width, not in the masonry columns above: its swatch grid is much
+          taller than Theme/Density, which threw off column balance when mixed in. */}
+      {tab === "appearance" && <BackgroundPatternSection />}
     </div>
   );
 }
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-3 mb-6 break-inside-avoid">
       <h2 className="text-sm font-semibold text-[var(--text-secondary)]">{title}</h2>
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-4 flex flex-col gap-3 text-sm text-[var(--text-body)]">
         {children}
@@ -301,13 +304,13 @@ function AutoScanSection() {
               disabled={saving}
               role="switch"
               aria-checked={state.autoScanEnabled}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+              className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
                 state.autoScanEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-2)]"
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                  state.autoScanEnabled ? "translate-x-[22px]" : "translate-x-0.5"
+                className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                  state.autoScanEnabled ? "translate-x-5" : "translate-x-0.5"
                 }`}
               />
             </button>
