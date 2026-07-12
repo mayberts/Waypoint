@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, getSessionSecret, verifySessionToken } from "@/lib/auth";
 
 const PUBLIC_PATHS = ["/login", "/icon"];
-const PUBLIC_PREFIXES = ["/api/auth/", "/api/extension/", "/_next/"];
+// /share/ and /api/share/ back the shareable-collection-link feature — the
+// slug itself is the credential. /uploads/ is opened up too, since favicon
+// and cover images referenced by a shared collection need to load for
+// visitors who never log in; filenames are content-hashed, not enumerable.
+const PUBLIC_PREFIXES = ["/api/auth/", "/api/extension/", "/_next/", "/share/", "/api/share/", "/uploads/"];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;

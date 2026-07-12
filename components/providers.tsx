@@ -82,10 +82,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // The login page is reachable pre-authentication, so these (now
-    // session-gated) endpoints would just 401 — skip fetching there. Nothing
-    // under /login reads `loading`, so leaving it at its initial value is fine.
-    if (pathname === "/login") return;
+    // The login page and public share pages are reachable pre-authentication,
+    // so these (now session-gated) endpoints would just 401 — skip fetching
+    // there. Nothing under /login or /share reads `loading`, so leaving it at
+    // its initial value is fine.
+    if (pathname === "/login" || pathname?.startsWith("/share/")) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount
     Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshAppearance()]).finally(() =>
       setLoading(false)

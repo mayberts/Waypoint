@@ -7,6 +7,7 @@ export interface CollectionDTO {
   parentId: string | null;
   sortOrder: number;
   createdAt: string;
+  shareSlug: string | null;
   _count?: { bookmarks: number };
 }
 

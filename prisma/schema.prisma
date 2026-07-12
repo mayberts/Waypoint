@@ -16,6 +16,7 @@ model Collection {
   parentId  String?
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
+  shareSlug String?  @unique // set => this collection's bookmarks are publicly readable at /share/<shareSlug>
 
   parent    Collection?  @relation("CollectionChildren", fields: [parentId], references: [id], onDelete: Cascade)
   children  Collection[] @relation("CollectionChildren")

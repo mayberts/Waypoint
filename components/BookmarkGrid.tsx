@@ -15,6 +15,7 @@ import { BookmarkEditDrawer } from "./BookmarkEditDrawer";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { BulkActionBar } from "./BulkActionBar";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
+import { ShareCollectionButton } from "./ShareCollectionButton";
 import { useAppData } from "./providers";
 
 const COLLECTION_VIEW_PREFIX = "collection:";
@@ -204,6 +205,7 @@ export function BookmarkGrid({
           >
             ⌨
           </button>
+          {collectionId && <ShareCollectionButton collectionId={collectionId} />}
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
             onClick={() => setAdding(true)}
