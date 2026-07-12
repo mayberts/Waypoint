@@ -874,10 +874,10 @@ function AppearanceSection() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[var(--text-secondary)] font-medium">Color scheme</p>
-          <p className="text-xs text-[var(--text-faint)]">Light or dark interface</p>
+          <p className="text-xs text-[var(--text-faint)]">Light, dark, or match your system</p>
         </div>
         <div className="flex rounded-md border border-[var(--border)] overflow-hidden">
-          {(["light", "dark"] as const).map((scheme) => (
+          {(["light", "dark", "auto"] as const).map((scheme) => (
             <button
               key={scheme}
               onClick={() => patch("colorScheme", scheme)}

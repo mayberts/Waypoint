@@ -33,12 +33,28 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html
       lang="en"
-      data-theme={colorScheme}
+      // "auto" can't be resolved on the server (it has no idea what the
+      // visitor's OS preference is) — fall back to the app's dark default
+      // here; the inline script below overwrites it before first paint.
+      // suppressHydrationWarning: React would otherwise flag that mismatch
+      // once it hydrates — this is the documented, intentional case for it.
+      suppressHydrationWarning
+      data-theme={colorScheme === "auto" ? "dark" : colorScheme}
       data-density={density}
       style={{ "--accent": hex, "--accent-strong": hexStrong } as React.CSSProperties}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full h-full">
+        {colorScheme === "auto" && (
+          // Synchronous + first in <body>, so it runs (and blocks paint)
+          // before any styled content renders — no flash of the wrong theme.
+          <script
+            dangerouslySetInnerHTML={{
+              __html:
+                "(function(){try{document.documentElement.setAttribute('data-theme',window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();",
+            }}
+          />
+        )}
         <AppDataProvider>{children}</AppDataProvider>
       </body>
     </html>

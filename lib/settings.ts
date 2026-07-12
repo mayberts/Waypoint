@@ -5,7 +5,9 @@ import { ACCENT_COLORS, DEFAULT_ACCENT_COLOR } from "./accent-colors";
 import { GRID_PATTERN_OPTIONS } from "./grid-patterns";
 import type { ScanSummary } from "./scan-jobs";
 
-export const COLOR_SCHEMES = ["dark", "light"] as const;
+// "auto" follows the browser's prefers-color-scheme; resolved client-side
+// since the server has no way to know the visitor's OS preference.
+export const COLOR_SCHEMES = ["dark", "light", "auto"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
 export type ColorScheme = (typeof COLOR_SCHEMES)[number];
 export type Density = (typeof DENSITIES)[number];

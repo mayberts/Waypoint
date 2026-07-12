@@ -39,11 +39,18 @@ interface AppData {
 
 const AppDataContext = createContext<AppData | null>(null);
 
+function resolveColorScheme(colorScheme: string): "dark" | "light" {
+  if (colorScheme === "auto") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  return colorScheme === "light" ? "light" : "dark";
+}
+
 function applyAppearance(settings: AppearanceSettings) {
   const { hex, hexStrong } = accentColorByValue(settings.accentColor);
   document.documentElement.style.setProperty("--accent", hex);
   document.documentElement.style.setProperty("--accent-strong", hexStrong);
-  document.documentElement.setAttribute("data-theme", settings.colorScheme);
+  document.documentElement.setAttribute("data-theme", resolveColorScheme(settings.colorScheme));
   document.documentElement.setAttribute("data-density", settings.density);
 }
 
@@ -87,6 +94,17 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  // In "auto" mode, follow the OS preference live — not just at page load —
+  // in case it changes (e.g. a scheduled dark-mode switch) while the app is
+  // already open in a tab.
+  useEffect(() => {
+    if (appearance.colorScheme !== "auto") return;
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => document.documentElement.setAttribute("data-theme", mql.matches ? "dark" : "light");
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, [appearance.colorScheme]);
 
   useEffect(() => {
     // The login page and public share pages are reachable pre-authentication,
