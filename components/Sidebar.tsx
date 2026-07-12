@@ -6,7 +6,7 @@ import { useState } from "react";
 import { CollectionTree } from "./CollectionTree";
 import { Logo } from "./Logo";
 
-export function Sidebar() {
+export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -27,13 +27,21 @@ export function Sidebar() {
         </Link>
       </div>
 
-      <form onSubmit={submitSearch} className="px-3 pt-3">
+      <form onSubmit={submitSearch} className="px-3 pt-3 relative">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search bookmarks…"
-          className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)]"
+          className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] pl-2.5 pr-16 py-1.5 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--border-stronger)]"
         />
+        <button
+          type="button"
+          onClick={onOpenPalette}
+          title="Open command palette"
+          className="absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded border border-[var(--border-strong)] text-[10px] leading-none text-[var(--text-faint)] hover:text-[var(--text-secondary)] hover:border-[var(--border-stronger)]"
+        >
+          Ctrl+K
+        </button>
       </form>
 
       <nav className="px-3 pt-3 flex flex-col gap-0.5">
