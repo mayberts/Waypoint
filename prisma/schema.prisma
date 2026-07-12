@@ -81,6 +81,7 @@ model Settings {
   autoScanEnabled       Boolean   @default(true)
   autoScanIntervalHours Int       @default(24)
   lastAutoScanAt        DateTime?
+  lastAutoScanSummary   Json? // { faviconsFound, coversFound, linksChecked, brokenLinksFound, errors }, from the most recent scheduled run
 }
 
 // User-uploaded icons for the collection icon picker, organized into

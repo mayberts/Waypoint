@@ -150,10 +150,58 @@ async function runToCompletion(runBatch: () => Promise<{ processed: number; rema
   }
 }
 
-/** Runs all three scans to completion, one after another. Used by the background scheduler. */
-export async function runAllScans(): Promise<void> {
-  await runToCompletion(() => refreshFaviconsBatch(SCAN_BATCH_SIZE));
-  await runToCompletion(() => refreshCoversBatch(SCAN_BATCH_SIZE));
-  const since = new Date();
-  await runToCompletion(() => checkLinksBatch(since, SCAN_BATCH_SIZE));
+export interface ScanSummary {
+  faviconsFound: number;
+  coversFound: number;
+  linksChecked: number;
+  brokenLinksFound: number;
+  errors: string[];
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+/**
+ * Runs all three scans to completion, one after another. Used by the
+ * background scheduler. Each step is caught independently so one failing
+ * step (e.g. a transient DB hiccup) doesn't lose the results of the others —
+ * the summary always reflects whatever actually completed, plus any errors.
+ */
+export async function runAllScans(): Promise<ScanSummary> {
+  const summary: ScanSummary = { faviconsFound: 0, coversFound: 0, linksChecked: 0, brokenLinksFound: 0, errors: [] };
+
+  try {
+    await runToCompletion(async () => {
+      const r = await refreshFaviconsBatch(SCAN_BATCH_SIZE);
+      summary.faviconsFound += r.updated;
+      return r;
+    });
+  } catch (err) {
+    summary.errors.push(`Favicon refresh failed: ${errorMessage(err)}`);
+  }
+
+  try {
+    await runToCompletion(async () => {
+      const r = await refreshCoversBatch(SCAN_BATCH_SIZE);
+      summary.coversFound += r.updated;
+      return r;
+    });
+  } catch (err) {
+    summary.errors.push(`Cover image refresh failed: ${errorMessage(err)}`);
+  }
+
+  try {
+    const since = new Date();
+    await runToCompletion(async () => {
+      const r = await checkLinksBatch(since, SCAN_BATCH_SIZE);
+      summary.linksChecked += r.processed;
+      summary.brokenLinksFound += r.broken;
+      return r;
+    });
+  } catch (err) {
+    summary.errors.push(`Broken link check failed: ${errorMessage(err)}`);
+  }
+
+  return summary;
 }

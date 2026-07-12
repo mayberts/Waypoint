@@ -1,7 +1,9 @@
 import { randomBytes } from "node:crypto";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 import { ACCENT_COLORS, DEFAULT_ACCENT_COLOR } from "./accent-colors";
 import { GRID_PATTERN_OPTIONS } from "./grid-patterns";
+import type { ScanSummary } from "./scan-jobs";
 
 export const COLOR_SCHEMES = ["dark", "light"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
@@ -104,6 +106,7 @@ export interface AutoScanSettings {
   autoScanEnabled: boolean;
   autoScanIntervalHours: number;
   lastAutoScanAt: Date | null;
+  lastAutoScanSummary: ScanSummary | null;
 }
 
 export async function getAutoScanSettings(): Promise<AutoScanSettings> {
@@ -112,6 +115,7 @@ export async function getAutoScanSettings(): Promise<AutoScanSettings> {
     autoScanEnabled: existing?.autoScanEnabled ?? true,
     autoScanIntervalHours: existing?.autoScanIntervalHours ?? 24,
     lastAutoScanAt: existing?.lastAutoScanAt ?? null,
+    lastAutoScanSummary: (existing?.lastAutoScanSummary as ScanSummary | null) ?? null,
   };
 }
 
@@ -137,11 +141,17 @@ export async function setAutoScanIntervalHours(value: number): Promise<number> {
 }
 
 /** Stamped by the background scheduler after a scan completes, so it survives container restarts. */
-export async function markAutoScanRan(): Promise<void> {
+export async function markAutoScanRan(summary: ScanSummary): Promise<void> {
+  const lastAutoScanSummary = summary as unknown as Prisma.InputJsonValue;
   await prisma.settings.upsert({
     where: { id: 1 },
-    update: { lastAutoScanAt: new Date() },
-    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), lastAutoScanAt: new Date() },
+    update: { lastAutoScanAt: new Date(), lastAutoScanSummary },
+    create: {
+      id: 1,
+      apiToken: randomBytes(24).toString("base64url"),
+      lastAutoScanAt: new Date(),
+      lastAutoScanSummary,
+    },
   });
 }
 

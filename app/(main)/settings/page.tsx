@@ -250,10 +250,19 @@ function formatRelativeTime(iso: string): string {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+interface AutoScanSummary {
+  faviconsFound: number;
+  coversFound: number;
+  linksChecked: number;
+  brokenLinksFound: number;
+  errors: string[];
+}
+
 interface AutoScanState {
   autoScanEnabled: boolean;
   autoScanIntervalHours: number;
   lastAutoScanAt: string | null;
+  lastAutoScanSummary: AutoScanSummary | null;
 }
 
 function AutoScanSection() {
@@ -298,6 +307,17 @@ function AutoScanSection() {
               <p className="text-xs text-[var(--text-faint)]">
                 Last ran {state.lastAutoScanAt ? formatRelativeTime(state.lastAutoScanAt) : "never"}
               </p>
+              {state.lastAutoScanSummary && (
+                <p className="text-xs text-[var(--text-faint)]">
+                  {state.lastAutoScanSummary.faviconsFound} favicon{state.lastAutoScanSummary.faviconsFound === 1 ? "" : "s"}
+                  , {state.lastAutoScanSummary.coversFound} cover image{state.lastAutoScanSummary.coversFound === 1 ? "" : "s"}
+                  , {state.lastAutoScanSummary.linksChecked} link{state.lastAutoScanSummary.linksChecked === 1 ? "" : "s"}{" "}
+                  checked ({state.lastAutoScanSummary.brokenLinksFound} broken)
+                </p>
+              )}
+              {state.lastAutoScanSummary && state.lastAutoScanSummary.errors.length > 0 && (
+                <p className="text-xs text-red-400">{state.lastAutoScanSummary.errors.join("; ")}</p>
+              )}
             </div>
             <button
               onClick={() => patch({ autoScanEnabled: !state.autoScanEnabled })}

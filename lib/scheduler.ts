@@ -1,5 +1,5 @@
 import { getAutoScanSettings, markAutoScanRan } from "./settings";
-import { runAllScans } from "./scan-jobs";
+import { runAllScans, type ScanSummary } from "./scan-jobs";
 
 // How often to check whether a scan is due. Deliberately much shorter than
 // any configurable scan interval — checking elapsed time since the last run
@@ -25,14 +25,18 @@ async function tick() {
 
   running = true;
   console.log("[scheduler] running background scan…");
+  // runAllScans catches its own per-step errors and always returns a summary;
+  // this outer catch is a last-resort fallback for anything that slips
+  // through (e.g. a DB connectivity issue hit before any step even starts).
+  let summary: ScanSummary = { faviconsFound: 0, coversFound: 0, linksChecked: 0, brokenLinksFound: 0, errors: [] };
   try {
-    await runAllScans();
-    console.log("[scheduler] background scan complete");
+    summary = await runAllScans();
+    console.log("[scheduler] background scan complete", summary);
   } catch (err) {
-    // A single failed scan shouldn't stop future ticks — log and try again next time.
     console.error("[scheduler] background scan failed:", err);
+    summary.errors.push(err instanceof Error ? err.message : String(err));
   } finally {
-    await markAutoScanRan();
+    await markAutoScanRan(summary);
     running = false;
   }
 }

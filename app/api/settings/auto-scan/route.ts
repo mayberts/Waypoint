@@ -7,6 +7,7 @@ export async function GET() {
     autoScanEnabled: settings.autoScanEnabled,
     autoScanIntervalHours: settings.autoScanIntervalHours,
     lastAutoScanAt: settings.lastAutoScanAt?.toISOString() ?? null,
+    lastAutoScanSummary: settings.lastAutoScanSummary,
   });
 }
 
