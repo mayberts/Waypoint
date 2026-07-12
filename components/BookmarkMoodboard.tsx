@@ -12,11 +12,13 @@ export function BookmarkMoodboard({
   onEdit,
   selected,
   onToggleSelect,
+  focusedId = null,
 }: {
   bookmarks: BookmarkDTO[];
   onEdit: (bookmark: BookmarkDTO) => void;
   selected: Set<string>;
   onToggleSelect: (id: string) => void;
+  focusedId?: string | null;
 }) {
   return (
     <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
@@ -25,6 +27,7 @@ export function BookmarkMoodboard({
           key={b.id}
           bookmark={b}
           selected={selected.has(b.id)}
+          focused={b.id === focusedId}
           onEdit={() => onEdit(b)}
           onToggleSelect={() => onToggleSelect(b.id)}
         />
@@ -36,11 +39,13 @@ export function BookmarkMoodboard({
 function MoodboardItem({
   bookmark: b,
   selected: isSelected,
+  focused,
   onEdit,
   onToggleSelect,
 }: {
   bookmark: BookmarkDTO;
   selected: boolean;
+  focused: boolean;
   onEdit: () => void;
   onToggleSelect: () => void;
 }) {
@@ -62,6 +67,7 @@ function MoodboardItem({
     <div
       ref={setNodeRef}
       {...listeners}
+      data-bookmark-id={b.id}
       className={`mb-4 break-inside-avoid ${isDragging ? "opacity-40" : ""}`}
       style={{ transform: CSS.Translate.toString(transform), zIndex: isDragging ? 50 : undefined, position: isDragging ? "relative" : undefined }}
     >
@@ -69,7 +75,7 @@ function MoodboardItem({
         <div
           className={`group relative rounded-lg overflow-hidden border transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
             isSelected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
-          }`}
+          } ${focused ? "ring-2 ring-[var(--accent)]" : ""}`}
         >
           {checkbox}
           <a href={b.url} target="_blank" rel="noopener noreferrer">
@@ -108,7 +114,7 @@ function MoodboardItem({
         <div
           className={`group relative flex flex-col gap-1.5 rounded-lg border p-3 bg-[var(--surface-1)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
             isSelected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
-          }`}
+          } ${focused ? "ring-2 ring-[var(--accent)]" : ""}`}
         >
           {checkbox}
           <div

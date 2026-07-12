@@ -12,12 +12,14 @@ export function BookmarkRow({
   onEdit,
   selected,
   onToggleSelect,
+  focused = false,
 }: {
   bookmark: BookmarkDTO;
   dense: boolean;
   onEdit: () => void;
   selected: boolean;
   onToggleSelect: () => void;
+  focused?: boolean;
 }) {
   const { listeners, setNodeRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
 
@@ -25,9 +27,12 @@ export function BookmarkRow({
     <div
       ref={setNodeRef}
       {...listeners}
+      data-bookmark-id={bookmark.id}
       className={`group flex items-center gap-3 border-b border-[var(--border-a70)] transition-colors duration-150 hover:bg-[var(--surface-1-a60)] ${
         selected ? "bg-[var(--surface-1-a60)]" : ""
-      } ${isDragging ? "relative opacity-70 bg-[var(--surface-1)] shadow-lg" : ""}`}
+      } ${isDragging ? "relative opacity-70 bg-[var(--surface-1)] shadow-lg" : ""} ${
+        focused ? "relative ring-2 ring-inset ring-[var(--accent)]" : ""
+      }`}
       style={{
         paddingTop: dense ? "0.5rem" : "var(--list-row-py)",
         paddingBottom: dense ? "0.5rem" : "var(--list-row-py)",

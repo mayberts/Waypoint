@@ -12,11 +12,13 @@ export function BookmarkCard({
   onEdit,
   selected,
   onToggleSelect,
+  focused = false,
 }: {
   bookmark: BookmarkDTO;
   onEdit: () => void;
   selected: boolean;
   onToggleSelect: () => void;
+  focused?: boolean;
 }) {
   // Only the pointer listeners are spread here, not dnd-kit's `attributes`
   // (which add role="button"/tabIndex) — there's no KeyboardSensor
@@ -28,10 +30,13 @@ export function BookmarkCard({
     <div
       ref={setNodeRef}
       {...listeners}
+      data-bookmark-id={bookmark.id}
       style={{ transform: CSS.Translate.toString(transform), zIndex: isDragging ? 50 : undefined }}
       className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden hover:-translate-y-0.5 hover:shadow-lg ${
         isDragging ? "opacity-40 shadow-2xl" : "transition-[color,background-color,border-color,box-shadow,transform] duration-150"
-      } ${selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"}`}
+      } ${selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"} ${
+        focused ? "ring-2 ring-[var(--accent)]" : ""
+      }`}
     >
       <input
         type="checkbox"
