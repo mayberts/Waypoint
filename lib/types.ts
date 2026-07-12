@@ -17,6 +17,14 @@ export interface TagDTO {
   _count?: { bookmarks: number };
 }
 
+export interface SavedSearchDTO {
+  id: string;
+  name: string;
+  query: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface IconAssetDTO {
   id: string;
   category: string;

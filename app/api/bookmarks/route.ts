@@ -9,12 +9,19 @@ export async function GET(req: NextRequest) {
   const collectionId = searchParams.get("collectionId");
   const unsorted = searchParams.get("unsorted") === "true";
   const tag = searchParams.get("tag");
+  const broken = searchParams.get("broken") === "true";
+  const untagged = searchParams.get("untagged") === "true";
+  const since = searchParams.get("since");
+  const sinceDate = since ? new Date(since) : null;
 
   const bookmarks = await prisma.bookmark.findMany({
     where: {
       deletedAt: null,
       ...(unsorted ? { collectionId: null } : collectionId ? { collectionId } : {}),
       ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
+      ...(broken ? { isBroken: true } : {}),
+      ...(untagged ? { tags: { none: {} } } : {}),
+      ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { createdAt: { gte: sinceDate } } : {}),
     },
     include: { tags: { include: { tag: true } } },
     orderBy: { createdAt: "desc" },

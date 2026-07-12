@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { api } from "@/lib/api-client";
-import type { CollectionDTO, TagDTO, IconAssetDTO } from "@/lib/types";
+import type { CollectionDTO, TagDTO, IconAssetDTO, SavedSearchDTO } from "@/lib/types";
 import { accentColorByValue, DEFAULT_ACCENT_COLOR } from "@/lib/accent-colors";
 
 interface AppearanceSettings {
@@ -24,11 +24,13 @@ interface AppData {
   collections: CollectionDTO[];
   tags: TagDTO[];
   iconAssets: IconAssetDTO[];
+  savedSearches: SavedSearchDTO[];
   appearance: AppearanceSettings;
   loading: boolean;
   refreshCollections: () => Promise<void>;
   refreshTags: () => Promise<void>;
   refreshIconAssets: () => Promise<void>;
+  refreshSavedSearches: () => Promise<void>;
   setAppearance: (patch: Partial<AppearanceSettings>) => void;
   /** Bumped whenever a bookmark moves outside of the currently-mounted grid's own actions (e.g. a sidebar drag-drop), so grids know to refetch. */
   bookmarksVersion: number;
@@ -50,6 +52,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [collections, setCollections] = useState<CollectionDTO[]>([]);
   const [tags, setTags] = useState<TagDTO[]>([]);
   const [iconAssets, setIconAssets] = useState<IconAssetDTO[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearchDTO[]>([]);
   const [appearance, setAppearanceState] = useState<AppearanceSettings>(DEFAULT_APPEARANCE);
   const [loading, setLoading] = useState(true);
   const [bookmarksVersion, setBookmarksVersion] = useState(0);
@@ -65,6 +68,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const refreshIconAssets = useCallback(async () => {
     setIconAssets(await api.get<IconAssetDTO[]>("/api/icon-assets"));
+  }, []);
+
+  const refreshSavedSearches = useCallback(async () => {
+    setSavedSearches(await api.get<SavedSearchDTO[]>("/api/saved-searches"));
   }, []);
 
   const refreshAppearance = useCallback(async () => {
@@ -88,10 +95,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     // its initial value is fine.
     if (pathname === "/login" || pathname?.startsWith("/share/")) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount
-    Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshAppearance()]).finally(() =>
+    Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshSavedSearches(), refreshAppearance()]).finally(() =>
       setLoading(false)
     );
-  }, [pathname, refreshCollections, refreshTags, refreshIconAssets, refreshAppearance]);
+  }, [pathname, refreshCollections, refreshTags, refreshIconAssets, refreshSavedSearches, refreshAppearance]);
 
   return (
     <AppDataContext.Provider
@@ -99,11 +106,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         collections,
         tags,
         iconAssets,
+        savedSearches,
         appearance,
         loading,
         refreshCollections,
         refreshTags,
         refreshIconAssets,
+        refreshSavedSearches,
         setAppearance,
         bookmarksVersion,
         notifyBookmarksChanged,

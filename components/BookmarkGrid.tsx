@@ -25,12 +25,15 @@ export function BookmarkGrid({
   query,
   viewKey,
   defaultCollectionId = null,
+  extraActions,
 }: {
   title: string;
   query: BookmarkQuery;
   /** Identifies where the view preference is stored: "all" | "unsorted" | "search" | "collection:<id>". */
   viewKey: string;
   defaultCollectionId?: string | null;
+  /** Extra buttons rendered in the header, before the view switcher (e.g. "Save this search"). */
+  extraActions?: React.ReactNode;
 }) {
   const { bookmarks, loading, refresh } = useBookmarks(query);
   const { collections, refreshCollections, appearance, bookmarksVersion } = useAppData();
@@ -206,6 +209,7 @@ export function BookmarkGrid({
             ⌨
           </button>
           {collectionId && <ShareCollectionButton collectionId={collectionId} />}
+          {extraActions}
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
             onClick={() => setAdding(true)}

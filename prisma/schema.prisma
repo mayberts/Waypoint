@@ -68,6 +68,16 @@ model BookmarkTag {
   @@index([tagId])
 }
 
+// A pinned, named shortcut back into /search?q=<query> — the query string
+// is whatever the full-text search box accepts, saved verbatim.
+model SavedSearch {
+  id        String   @id @default(cuid())
+  name      String
+  query     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 model Settings {
   id               Int     @id @default(1)
   apiToken         String

@@ -8,6 +8,10 @@ export interface BookmarkQuery {
   collectionId?: string;
   unsorted?: boolean;
   q?: string;
+  /** Smart-collection filters — broken links, untagged, or added since a given ISO timestamp. */
+  broken?: boolean;
+  untagged?: boolean;
+  since?: string;
 }
 
 function buildUrl(query: BookmarkQuery): string {
@@ -18,6 +22,9 @@ function buildUrl(query: BookmarkQuery): string {
   const params = new URLSearchParams();
   if (query.unsorted) params.set("unsorted", "true");
   else if (query.collectionId) params.set("collectionId", query.collectionId);
+  if (query.broken) params.set("broken", "true");
+  if (query.untagged) params.set("untagged", "true");
+  if (query.since) params.set("since", query.since);
   return `/api/bookmarks?${params}`;
 }
 
@@ -33,7 +40,7 @@ export function useBookmarks(query: BookmarkQuery) {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.collectionId, query.unsorted, query.q]);
+  }, [query.collectionId, query.unsorted, query.q, query.broken, query.untagged, query.since]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount/query-change

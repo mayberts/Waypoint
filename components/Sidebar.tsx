@@ -7,6 +7,8 @@ import { useDndContext, useDroppable } from "@dnd-kit/core";
 import { CollectionTree } from "./CollectionTree";
 import { Logo } from "./Logo";
 import { UNSORTED_DROP_ID, parseBookmarkDndId } from "@/lib/dnd-ids";
+import { api } from "@/lib/api-client";
+import { useAppData } from "./providers";
 
 export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const pathname = usePathname();
@@ -57,6 +59,23 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
       </nav>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="flex flex-col gap-0.5">
+          <div className="px-2 pt-3 pb-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Smart</span>
+          </div>
+          <SidebarLink href="/smart/broken" active={pathname === "/smart/broken"} icon="🔴">
+            Broken links
+          </SidebarLink>
+          <SidebarLink href="/smart/recent" active={pathname === "/smart/recent"} icon="🆕">
+            Added this week
+          </SidebarLink>
+          <SidebarLink href="/smart/untagged" active={pathname === "/smart/untagged"} icon="🏷️">
+            Untagged
+          </SidebarLink>
+        </div>
+
+        <SavedSearches />
+
         <CollectionTree selectedId={collectionId} />
       </div>
 
@@ -66,6 +85,49 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
         </SidebarLink>
       </div>
     </aside>
+  );
+}
+
+function SavedSearches() {
+  const { savedSearches, refreshSavedSearches } = useAppData();
+
+  if (savedSearches.length === 0) return null;
+
+  async function remove(id: string) {
+    await api.delete(`/api/saved-searches/${id}`);
+    await refreshSavedSearches();
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="px-2 pt-3 pb-1">
+        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Saved searches</span>
+      </div>
+      {savedSearches.map((s) => (
+        <div
+          key={s.id}
+          className="group relative flex items-center gap-2.5 rounded-md px-2 text-sm text-[var(--text-body)] hover:bg-[var(--surface-2-a60)]"
+          style={{ paddingTop: "var(--sidebar-row-py)", paddingBottom: "var(--sidebar-row-py)" }}
+        >
+          <span
+            style={{ height: "var(--sidebar-row-icon)", width: "var(--sidebar-row-icon)" }}
+            className="flex items-center justify-center text-lg leading-none shrink-0"
+          >
+            🔍
+          </span>
+          <Link href={`/search?q=${encodeURIComponent(s.query)}`} className="flex-1 min-w-0 truncate" title={s.query}>
+            {s.name}
+          </Link>
+          <button
+            onClick={() => remove(s.id)}
+            title="Remove saved search"
+            className="shrink-0 text-[var(--text-faint)] hover:text-red-400 px-0.5 md:hidden md:group-hover:block"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }
 
