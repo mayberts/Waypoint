@@ -61,6 +61,7 @@ export default function SettingsPage() {
               <FaviconRefreshSection />
               <CoverRefreshSection />
               <BrokenLinkSection />
+              <DuplicatesSection />
               <TrashSection />
             </>
           )}
@@ -1042,6 +1043,33 @@ function ExportSection() {
       >
         Download export
       </a>
+    </Card>
+  );
+}
+
+function DuplicatesSection() {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.get<{ groups: unknown[][] }>("/api/bookmarks/duplicates").then((r) => setCount(r.groups.length));
+  }, []);
+
+  return (
+    <Card title="Duplicate bookmarks">
+      <p>
+        Finds bookmarks that share the exact same URL — including port, so two self-hosted services on the same
+        LAN address at different ports are never flagged as duplicates.
+      </p>
+      {count === 0 ? (
+        <p className="text-xs text-green-400">No duplicates found.</p>
+      ) : (
+        <Link
+          href="/duplicates"
+          className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)]"
+        >
+          Review duplicates{count !== null ? ` (${count})` : ""}
+        </Link>
+      )}
     </Card>
   );
 }
