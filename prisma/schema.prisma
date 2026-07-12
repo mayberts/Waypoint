@@ -78,6 +78,9 @@ model Settings {
   authUsername     String?
   authPasswordHash String?
   sessionSecret    String?
+  autoScanEnabled       Boolean   @default(true)
+  autoScanIntervalHours Int       @default(24)
+  lastAutoScanAt        DateTime?
 }
 
 // User-uploaded icons for the collection icon picker, organized into

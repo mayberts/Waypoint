@@ -97,6 +97,54 @@ export async function setGridPattern(value: string): Promise<GridPattern> {
   return value as GridPattern;
 }
 
+export const AUTO_SCAN_INTERVALS_HOURS = [6, 12, 24, 72, 168] as const;
+export type AutoScanIntervalHours = (typeof AUTO_SCAN_INTERVALS_HOURS)[number];
+
+export interface AutoScanSettings {
+  autoScanEnabled: boolean;
+  autoScanIntervalHours: number;
+  lastAutoScanAt: Date | null;
+}
+
+export async function getAutoScanSettings(): Promise<AutoScanSettings> {
+  const existing = await prisma.settings.findUnique({ where: { id: 1 } });
+  return {
+    autoScanEnabled: existing?.autoScanEnabled ?? true,
+    autoScanIntervalHours: existing?.autoScanIntervalHours ?? 24,
+    lastAutoScanAt: existing?.lastAutoScanAt ?? null,
+  };
+}
+
+export async function setAutoScanEnabled(value: boolean): Promise<boolean> {
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { autoScanEnabled: value },
+    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), autoScanEnabled: value },
+  });
+  return value;
+}
+
+export async function setAutoScanIntervalHours(value: number): Promise<number> {
+  if (!AUTO_SCAN_INTERVALS_HOURS.includes(value as AutoScanIntervalHours)) {
+    throw new Error("Unknown scan interval");
+  }
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { autoScanIntervalHours: value },
+    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), autoScanIntervalHours: value },
+  });
+  return value;
+}
+
+/** Stamped by the background scheduler after a scan completes, so it survives container restarts. */
+export async function markAutoScanRan(): Promise<void> {
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { lastAutoScanAt: new Date() },
+    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), lastAutoScanAt: new Date() },
+  });
+}
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let mismatch = 0;

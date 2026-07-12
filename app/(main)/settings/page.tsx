@@ -55,6 +55,7 @@ export default function SettingsPage() {
           )}
           {tab === "data" && (
             <>
+              <AutoScanSection />
               <ImportSection />
               <ExportSection />
               <FaviconRefreshSection />
@@ -222,6 +223,115 @@ function ImportSection() {
         className="text-xs"
       />
       {result && <p className="text-xs text-green-400">{result}</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+const SCAN_INTERVAL_OPTIONS = [
+  { hours: 6, label: "Every 6 hours" },
+  { hours: 12, label: "Every 12 hours" },
+  { hours: 24, label: "Daily" },
+  { hours: 72, label: "Every 3 days" },
+  { hours: 168, label: "Weekly" },
+];
+
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.round(diffMs / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+interface AutoScanState {
+  autoScanEnabled: boolean;
+  autoScanIntervalHours: number;
+  lastAutoScanAt: string | null;
+}
+
+function AutoScanSection() {
+  const [state, setState] = useState<AutoScanState | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<AutoScanState>("/api/settings/auto-scan").then(setState);
+  }, []);
+
+  async function patch(update: Partial<Pick<AutoScanState, "autoScanEnabled" | "autoScanIntervalHours">>) {
+    if (!state) return;
+    const previous = state;
+    setSaving(true);
+    setError(null);
+    setState({ ...state, ...update });
+    try {
+      await api.patch("/api/settings/auto-scan", update);
+    } catch (err) {
+      setState(previous);
+      setError(err instanceof ApiError ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card title="Automatic scans">
+      <p>
+        Periodically fetches missing favicons and cover images, and checks for broken links, in the background —
+        the same work as the buttons below, run on a schedule instead of by hand.
+      </p>
+
+      {!state ? (
+        <p className="text-xs text-[var(--text-faint)]">Loading…</p>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[var(--text-secondary)] font-medium">Enable automatic scans</p>
+              <p className="text-xs text-[var(--text-faint)]">
+                Last ran {state.lastAutoScanAt ? formatRelativeTime(state.lastAutoScanAt) : "never"}
+              </p>
+            </div>
+            <button
+              onClick={() => patch({ autoScanEnabled: !state.autoScanEnabled })}
+              disabled={saving}
+              role="switch"
+              aria-checked={state.autoScanEnabled}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+                state.autoScanEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-2)]"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                  state.autoScanEnabled ? "translate-x-[22px]" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+
+          {state.autoScanEnabled && (
+            <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+              <p className="text-[var(--text-secondary)] font-medium">Frequency</p>
+              <select
+                value={state.autoScanIntervalHours}
+                onChange={(e) => patch({ autoScanIntervalHours: Number(e.target.value) })}
+                disabled={saving}
+                className="rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)] disabled:opacity-50"
+              >
+                {SCAN_INTERVAL_OPTIONS.map((o) => (
+                  <option key={o.hours} value={o.hours}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </>
+      )}
       {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
   );
