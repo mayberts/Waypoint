@@ -1,8 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { createBookmark, CollectionNotFoundError } from "@/lib/create-bookmark";
 import { serializeBookmark } from "@/lib/serialize";
+
+function orderByForSort(sort: string | null): Prisma.BookmarkOrderByWithRelationInput[] {
+  switch (sort) {
+    case "oldest":
+      return [{ createdAt: "asc" }];
+    case "title-asc":
+      return [{ title: "asc" }];
+    case "title-desc":
+      return [{ title: "desc" }];
+    case "manual":
+      // Ties (e.g. every row still at the default 0, before any drag)
+      // fall back to newest-first so a never-reordered list still reads
+      // sensibly rather than in arbitrary id order.
+      return [{ sortOrder: "asc" }, { createdAt: "desc" }];
+    case "newest":
+    default:
+      return [{ createdAt: "desc" }];
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -24,7 +44,7 @@ export async function GET(req: NextRequest) {
       ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { createdAt: { gte: sinceDate } } : {}),
     },
     include: { tags: { include: { tag: true } } },
-    orderBy: { createdAt: "desc" },
+    orderBy: orderByForSort(searchParams.get("sort")),
   });
 
   return NextResponse.json(bookmarks.map(serializeBookmark));

@@ -13,6 +13,7 @@ model Collection {
   icon      String? // emoji, or a /uploads path for a custom collection image
   color     String? // hex color, used when no icon is set
   view      String   @default("cards") // "cards" | "list" | "headlines" | "moodboard"
+  sort      String   @default("manual") // "manual" | "newest" | "oldest" | "title-asc" | "title-desc"
   parentId  String?
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
@@ -37,6 +38,7 @@ model Bookmark {
   coverImagePath   String?
   coverImageCheckedAt DateTime? // set on every refresh attempt (success or fail), same reasoning as faviconCheckedAt
   collectionId     String?
+  sortOrder        Int       @default(0) // manual drag order, meaningful only among bookmarks sharing the same collectionId (including null = Unsorted)
   deletedAt        DateTime? // soft-delete: set instead of removing the row; excluded from all normal queries
   isBroken         Boolean   @default(false)
   linkCheckedAt    DateTime? // set on every link-check attempt regardless of outcome, for the same reason as faviconCheckedAt

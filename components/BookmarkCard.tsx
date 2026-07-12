@@ -1,6 +1,6 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
 import { faviconFallbackColor } from "@/lib/favicon-color";
@@ -24,18 +24,25 @@ export function BookmarkCard({
   // (which add role="button"/tabIndex) — there's no KeyboardSensor
   // registered, so making the whole card a synthetic button would add
   // nothing but noise to the tab order and screen-reader output.
-  const { listeners, setNodeRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
+  const { listeners, setNodeRef: setDragRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
+  // Droppable too, using the same id — lets another bookmark be dropped onto
+  // this one to reorder (BookmarkGrid's manual-sort drag handler), on top of
+  // this card's own draggability.
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: bookmarkDndId(bookmark.id) });
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(el) => {
+        setDragRef(el);
+        setDropRef(el);
+      }}
       {...listeners}
       data-bookmark-id={bookmark.id}
       style={{ transform: CSS.Translate.toString(transform), zIndex: isDragging ? 50 : undefined }}
       className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden hover:-translate-y-0.5 hover:shadow-lg ${
         isDragging ? "opacity-40 shadow-2xl" : "transition-[color,background-color,border-color,box-shadow,transform] duration-150"
       } ${selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"} ${
-        focused ? "ring-2 ring-[var(--accent)]" : ""
+        focused || isOver ? "ring-2 ring-[var(--accent)]" : ""
       }`}
     >
       <input

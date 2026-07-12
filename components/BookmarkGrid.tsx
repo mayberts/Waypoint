@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useDndMonitor } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { useBookmarks, type BookmarkQuery } from "@/lib/use-bookmarks";
 import type { BookmarkDTO } from "@/lib/types";
 import { api } from "@/lib/api-client";
 import { isViewMode, loadLocalView, saveLocalView, applyViewToAllLocalKeys, type ViewMode } from "@/lib/view-prefs";
+import { isSortMode, loadLocalSort, saveLocalSort, type SortMode } from "@/lib/sort-prefs";
+import { parseBookmarkDndId } from "@/lib/dnd-ids";
 import { gridPatternStyle } from "@/lib/grid-patterns";
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkRow } from "./BookmarkRow";
@@ -13,6 +17,7 @@ import { BookmarkGridSkeleton } from "./BookmarkGridSkeleton";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { BookmarkEditDrawer } from "./BookmarkEditDrawer";
 import { ViewSwitcher } from "./ViewSwitcher";
+import { SortMenu } from "./SortMenu";
 import { BulkActionBar } from "./BulkActionBar";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
 import { ShareCollectionButton } from "./ShareCollectionButton";
@@ -35,8 +40,29 @@ export function BookmarkGrid({
   /** Extra buttons rendered in the header, before the view switcher (e.g. "Save this search"). */
   extraActions?: React.ReactNode;
 }) {
-  const { bookmarks, loading, refresh } = useBookmarks(query);
   const { collections, refreshCollections, appearance, bookmarksVersion } = useAppData();
+  const collectionId = viewKey.startsWith(COLLECTION_VIEW_PREFIX) ? viewKey.slice(COLLECTION_VIEW_PREFIX.length) : null;
+  const collectionRecord = collectionId ? collections.find((c) => c.id === collectionId) : null;
+  const isSearchQuery = !!query.q;
+  // Manual ordering only means something within one well-defined group of
+  // bookmarks — a single collection, or Unsorted. "All bookmarks", search
+  // results, and the smart collections span multiple groups (or aren't a
+  // real stored set at all), so there's no single coherent manual order.
+  const allowManualSort = !isSearchQuery && (!!collectionId || !!query.unsorted);
+
+  const [localSort, setLocalSort] = useState<SortMode>("newest");
+  const [optimisticSort, setOptimisticSort] = useState<SortMode | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading a client-only localStorage preference after mount
+    setLocalSort(loadLocalSort(viewKey, allowManualSort ? "manual" : "newest"));
+    setOptimisticSort(null);
+  }, [viewKey, allowManualSort]);
+  const sort: SortMode =
+    optimisticSort ?? (collectionId ? (isSortMode(collectionRecord?.sort) ? (collectionRecord!.sort as SortMode) : "manual") : localSort);
+
+  const { bookmarks, setBookmarks, loading, refresh } = useBookmarks(
+    isSearchQuery ? query : { ...query, sort }
+  );
   useEffect(() => {
     if (bookmarksVersion > 0) refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on the shared change signal, not on every `refresh` identity change
@@ -59,10 +85,37 @@ export function BookmarkGrid({
     setOptimisticView(null);
   }, [viewKey]);
 
-  const collectionId = viewKey.startsWith(COLLECTION_VIEW_PREFIX) ? viewKey.slice(COLLECTION_VIEW_PREFIX.length) : null;
-  const collectionRecord = collectionId ? collections.find((c) => c.id === collectionId) : null;
   const view: ViewMode =
     optimisticView ?? (collectionId ? (isViewMode(collectionRecord?.view) ? collectionRecord!.view : "cards") : localView);
+
+  async function handleSortChange(newSort: SortMode) {
+    setOptimisticSort(newSort);
+    if (collectionId) {
+      await api.patch(`/api/collections/${collectionId}`, { sort: newSort });
+      await refreshCollections();
+    } else {
+      saveLocalSort(viewKey, newSort);
+      setLocalSort(newSort);
+    }
+  }
+
+  // Bookmark-onto-bookmark drops (AppShell's own onDragEnd ignores these —
+  // it only acts on bookmark-onto-collection and collection-onto-collection)
+  // reorder within the current manual-sort list.
+  useDndMonitor({
+    async onDragEnd(event) {
+      if (!allowManualSort || sort !== "manual") return;
+      const draggedId = parseBookmarkDndId(event.active.id);
+      const overId = parseBookmarkDndId(event.over?.id);
+      if (!draggedId || !overId || draggedId === overId) return;
+      const oldIndex = bookmarks.findIndex((b) => b.id === draggedId);
+      const newIndex = bookmarks.findIndex((b) => b.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const reordered = arrayMove(bookmarks, oldIndex, newIndex);
+      setBookmarks(reordered);
+      await api.post("/api/bookmarks/reorder", { collectionId: collectionId ?? null, orderedIds: reordered.map((b) => b.id) });
+    },
+  });
 
   async function handleViewChange(newView: ViewMode) {
     setOptimisticView(newView);
@@ -210,6 +263,7 @@ export function BookmarkGrid({
           </button>
           {collectionId && <ShareCollectionButton collectionId={collectionId} />}
           {extraActions}
+          {!isSearchQuery && <SortMenu value={sort} onChange={handleSortChange} allowManual={allowManualSort} />}
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
             onClick={() => setAdding(true)}

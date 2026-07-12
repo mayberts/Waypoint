@@ -1,6 +1,6 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
 import { bookmarkDndId } from "@/lib/dnd-ids";
@@ -21,17 +21,21 @@ export function BookmarkRow({
   onToggleSelect: () => void;
   focused?: boolean;
 }) {
-  const { listeners, setNodeRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
+  const { listeners, setNodeRef: setDragRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(bookmark.id) });
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: bookmarkDndId(bookmark.id) });
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(el) => {
+        setDragRef(el);
+        setDropRef(el);
+      }}
       {...listeners}
       data-bookmark-id={bookmark.id}
       className={`group flex items-center gap-3 border-b border-[var(--border-a70)] transition-colors duration-150 hover:bg-[var(--surface-1-a60)] ${
         selected ? "bg-[var(--surface-1-a60)]" : ""
       } ${isDragging ? "relative opacity-70 bg-[var(--surface-1)] shadow-lg" : ""} ${
-        focused ? "relative ring-2 ring-inset ring-[var(--accent)]" : ""
+        focused || isOver ? "relative ring-2 ring-inset ring-[var(--accent)]" : ""
       }`}
       style={{
         paddingTop: dense ? "0.5rem" : "var(--list-row-py)",

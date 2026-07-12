@@ -4,6 +4,7 @@ export interface CollectionDTO {
   icon: string | null;
   color: string | null;
   view: string;
+  sort: string;
   parentId: string | null;
   sortOrder: number;
   createdAt: string;

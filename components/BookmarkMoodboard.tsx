@@ -1,6 +1,6 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
 import { faviconFallbackColor } from "@/lib/favicon-color";
@@ -49,7 +49,8 @@ function MoodboardItem({
   onEdit: () => void;
   onToggleSelect: () => void;
 }) {
-  const { listeners, setNodeRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(b.id) });
+  const { listeners, setNodeRef: setDragRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(b.id) });
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: bookmarkDndId(b.id) });
 
   const checkbox = (
     <input
@@ -65,7 +66,10 @@ function MoodboardItem({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(el) => {
+        setDragRef(el);
+        setDropRef(el);
+      }}
       {...listeners}
       data-bookmark-id={b.id}
       className={`mb-4 break-inside-avoid ${isDragging ? "opacity-40" : ""}`}
@@ -75,7 +79,7 @@ function MoodboardItem({
         <div
           className={`group relative rounded-lg overflow-hidden border transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
             isSelected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
-          } ${focused ? "ring-2 ring-[var(--accent)]" : ""}`}
+          } ${focused || isOver ? "ring-2 ring-[var(--accent)]" : ""}`}
         >
           {checkbox}
           <a href={b.url} target="_blank" rel="noopener noreferrer">
@@ -114,7 +118,7 @@ function MoodboardItem({
         <div
           className={`group relative flex flex-col gap-1.5 rounded-lg border p-3 bg-[var(--surface-1)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
             isSelected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
-          } ${focused ? "ring-2 ring-[var(--accent)]" : ""}`}
+          } ${focused || isOver ? "ring-2 ring-[var(--accent)]" : ""}`}
         >
           {checkbox}
           <div
