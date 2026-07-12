@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
+import { Skeleton } from "@/components/Skeleton";
 import { useAppData } from "@/components/providers";
 
 interface StatsResponse {
@@ -36,7 +37,26 @@ export default function StatsPage() {
       <h1 className="text-lg font-semibold text-[var(--text-primary)]">Stats</h1>
 
       {!stats ? (
-        <p className="text-sm text-[var(--text-faint)]">Loading…</p>
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-3 flex flex-col gap-2">
+                <Skeleton className="h-7 w-12" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-[168px] w-full rounded-lg" />
+          <div className="columns-1 lg:columns-2 gap-6">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="mb-6 break-inside-avoid rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-4 flex flex-col gap-2.5">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <Skeleton key={j} className="h-4 w-full" />
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api-client";
 import type { BookmarkDTO } from "@/lib/types";
 import { Favicon } from "@/components/Favicon";
+import { Skeleton } from "@/components/Skeleton";
 import { useAppData } from "@/components/providers";
 
 export default function DuplicatesPage() {
@@ -72,7 +73,25 @@ export default function DuplicatesPage() {
       <div className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
         {error && <p className="text-sm text-red-400 pb-3">{error}</p>}
         {loading ? (
-          <p className="text-sm text-[var(--text-faint)]">Loading…</p>
+          <div className="flex flex-col gap-4 max-w-2xl">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-[var(--border)] overflow-hidden">
+                <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[var(--surface-1)] border-b border-[var(--border)]">
+                  <Skeleton className="h-3 w-48" />
+                  <Skeleton className="h-6 w-32 shrink-0" />
+                </div>
+                <div className="flex flex-col">
+                  {Array.from({ length: 2 }).map((_, j) => (
+                    <div key={j} className="flex items-center gap-3 px-3 py-2.5 border-b border-[var(--border-a70)] last:border-b-0">
+                      <Skeleton className="h-5 w-5 shrink-0 rounded" />
+                      <Skeleton className="h-3.5 flex-1 max-w-xs" />
+                      <Skeleton className="h-3 w-16 shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : groups.length === 0 ? (
           <p className="text-sm text-[var(--text-faint)]">No duplicate bookmarks found.</p>
         ) : (

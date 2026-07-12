@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api-client";
 import type { BookmarkDTO } from "@/lib/types";
 import { Favicon } from "@/components/Favicon";
+import { Skeleton } from "@/components/Skeleton";
 import { useAppData } from "@/components/providers";
 
 export default function TrashPage() {
@@ -76,7 +77,15 @@ export default function TrashPage() {
       <div className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
         {error && <p className="text-sm text-red-400 pb-3">{error}</p>}
         {loading ? (
-          <p className="text-sm text-[var(--text-faint)]">Loading…</p>
+          <div className="flex flex-col">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 py-3 border-b border-[var(--border-a70)]">
+                <Skeleton className="h-6 w-6 shrink-0 rounded" />
+                <Skeleton className="h-3.5 flex-1 max-w-xs" />
+                <Skeleton className="h-3 w-20 shrink-0 hidden sm:block" />
+              </div>
+            ))}
+          </div>
         ) : bookmarks.length === 0 ? (
           <p className="text-sm text-[var(--text-faint)]">Trash is empty.</p>
         ) : (

@@ -17,7 +17,7 @@ export function BookmarkCard({
 }) {
   return (
     <div
-      className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden transition-colors ${
+      className={`group relative flex flex-col rounded-lg border bg-[var(--surface-1)] overflow-hidden transition-[color,background-color,border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
         selected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
       }`}
     >

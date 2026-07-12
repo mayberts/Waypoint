@@ -9,6 +9,7 @@ import { gridPatternStyle } from "@/lib/grid-patterns";
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkRow } from "./BookmarkRow";
 import { BookmarkMoodboard } from "./BookmarkMoodboard";
+import { BookmarkGridSkeleton } from "./BookmarkGridSkeleton";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { BookmarkEditDrawer } from "./BookmarkEditDrawer";
 import { ViewSwitcher } from "./ViewSwitcher";
@@ -125,43 +126,47 @@ export function BookmarkGrid({
       >
         <div className="flex-1">
           {loading ? (
-            <p className="text-sm text-[var(--text-faint)]">Loading…</p>
+            <BookmarkGridSkeleton view={view} />
           ) : bookmarks.length === 0 ? (
             <p className="text-sm text-[var(--text-faint)]">No bookmarks here yet.</p>
-          ) : view === "cards" ? (
-            <div
-              className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
-              style={{ gap: "var(--card-gap)" }}
-            >
-              {bookmarks.map((b) => (
-                <BookmarkCard
-                  key={b.id}
-                  bookmark={b}
-                  onEdit={() => setEditing(b)}
-                  selected={selected.has(b.id)}
-                  onToggleSelect={() => toggleSelect(b.id)}
-                />
-              ))}
-            </div>
-          ) : view === "moodboard" ? (
-            <BookmarkMoodboard
-              bookmarks={bookmarks}
-              onEdit={setEditing}
-              selected={selected}
-              onToggleSelect={toggleSelect}
-            />
           ) : (
-            <div className="flex flex-col">
-              {bookmarks.map((b) => (
-                <BookmarkRow
-                  key={b.id}
-                  bookmark={b}
-                  dense={view === "headlines"}
-                  onEdit={() => setEditing(b)}
-                  selected={selected.has(b.id)}
-                  onToggleSelect={() => toggleSelect(b.id)}
+            <div key={view} className="animate-fade-in">
+              {view === "cards" ? (
+                <div
+                  className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
+                  style={{ gap: "var(--card-gap)" }}
+                >
+                  {bookmarks.map((b) => (
+                    <BookmarkCard
+                      key={b.id}
+                      bookmark={b}
+                      onEdit={() => setEditing(b)}
+                      selected={selected.has(b.id)}
+                      onToggleSelect={() => toggleSelect(b.id)}
+                    />
+                  ))}
+                </div>
+              ) : view === "moodboard" ? (
+                <BookmarkMoodboard
+                  bookmarks={bookmarks}
+                  onEdit={setEditing}
+                  selected={selected}
+                  onToggleSelect={toggleSelect}
                 />
-              ))}
+              ) : (
+                <div className="flex flex-col">
+                  {bookmarks.map((b) => (
+                    <BookmarkRow
+                      key={b.id}
+                      bookmark={b}
+                      dense={view === "headlines"}
+                      onEdit={() => setEditing(b)}
+                      selected={selected.has(b.id)}
+                      onToggleSelect={() => toggleSelect(b.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export function BookmarkMoodboard({
           <div key={b.id} className="mb-4 break-inside-avoid">
             {b.coverImagePath ? (
               <div
-                className={`group relative rounded-lg overflow-hidden border ${
+                className={`group relative rounded-lg overflow-hidden border transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
                   isSelected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
                 }`}
               >
@@ -74,7 +74,7 @@ export function BookmarkMoodboard({
               </div>
             ) : (
               <div
-                className={`group relative flex flex-col gap-1.5 rounded-lg border p-3 bg-[var(--surface-1)] ${
+                className={`group relative flex flex-col gap-1.5 rounded-lg border p-3 bg-[var(--surface-1)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
                   isSelected ? "border-[var(--accent)]" : "border-[var(--border)] hover:border-[var(--border-strong)]"
                 }`}
               >

@@ -18,7 +18,7 @@ export function BookmarkRow({
 }) {
   return (
     <div
-      className={`group flex items-center gap-3 border-b border-[var(--border-a70)] hover:bg-[var(--surface-1-a60)] ${
+      className={`group flex items-center gap-3 border-b border-[var(--border-a70)] transition-colors duration-150 hover:bg-[var(--surface-1-a60)] ${
         selected ? "bg-[var(--surface-1-a60)]" : ""
       }`}
       style={{ paddingTop: dense ? "0.5rem" : "var(--list-row-py)", paddingBottom: dense ? "0.5rem" : "var(--list-row-py)" }}
