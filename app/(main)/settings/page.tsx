@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api-client";
 import { CollectionSelect } from "@/components/CollectionSelect";
 import { useAppData } from "@/components/providers";
-import type { BookmarkDTO, IconAssetDTO } from "@/lib/types";
+import type { BookmarkDTO, IconAssetDTO, TagDTO } from "@/lib/types";
 import { ACCENT_COLORS } from "@/lib/accent-colors";
 import { GRID_PATTERN_OPTIONS, GRID_PATTERN_CATEGORIES } from "@/lib/grid-patterns";
 
@@ -14,6 +14,7 @@ const TABS = [
   { id: "connect", label: "Connect" },
   { id: "data", label: "Data" },
   { id: "icons", label: "Icon Library" },
+  { id: "tags", label: "Tags" },
   { id: "appearance", label: "Appearance" },
   { id: "account", label: "Account" },
 ] as const;
@@ -43,8 +44,9 @@ export default function SettingsPage() {
       </div>
 
       {tab === "icons" && <IconLibrarySection />}
+      {tab === "tags" && <TagsSection />}
 
-      {tab !== "icons" && (
+      {tab !== "icons" && tab !== "tags" && (
         <div className="columns-1 lg:columns-2 gap-6">
           {tab === "connect" && (
             <>
@@ -745,6 +747,104 @@ function IconLibrarySection() {
           })}
         </div>
       )}
+    </Card>
+  );
+}
+
+function TagsSection() {
+  const { tags, refreshTags } = useAppData();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function startEdit(tag: TagDTO) {
+    setEditingId(tag.id);
+    setEditValue(tag.name);
+  }
+
+  async function commitEdit(tag: TagDTO) {
+    const name = editValue.trim().toLowerCase();
+    setEditingId(null);
+    if (!name || name === tag.name) return;
+    setBusyId(tag.id);
+    setError(null);
+    try {
+      await api.patch(`/api/tags/${tag.id}`, { name });
+      await refreshTags();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to rename tag");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function remove(tag: TagDTO) {
+    const count = tag._count?.bookmarks ?? 0;
+    const extra = count > 0 ? ` It will be removed from ${count} bookmark${count === 1 ? "" : "s"}.` : "";
+    if (!window.confirm(`Delete tag "${tag.name}"?${extra}`)) return;
+    setBusyId(tag.id);
+    setError(null);
+    try {
+      await api.delete(`/api/tags/${tag.id}`);
+      await refreshTags();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to delete tag");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <Card title="Tags">
+      <p>Rename or delete tags across your whole library. Renaming a tag to an existing tag&apos;s name merges the two.</p>
+
+      {tags.length === 0 ? (
+        <p className="text-xs text-[var(--text-faint)]">No tags yet.</p>
+      ) : (
+        <div className="flex flex-col">
+          {tags.map((tag) => (
+            <div
+              key={tag.id}
+              className="group flex items-center gap-3 py-2 border-b border-[var(--border-a70)] last:border-b-0"
+            >
+              {editingId === tag.id ? (
+                <input
+                  autoFocus
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => commitEdit(tag)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitEdit(tag);
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                  className="flex-1 min-w-0 bg-[var(--surface-1)] border border-[var(--border-strong)] rounded px-2 py-1 text-sm text-[var(--text-secondary)]"
+                />
+              ) : (
+                <button
+                  onClick={() => startEdit(tag)}
+                  disabled={busyId === tag.id}
+                  className="flex-1 min-w-0 text-left text-sm text-[var(--text-body)] hover:text-[var(--text-primary)] truncate disabled:opacity-50"
+                  title="Click to rename"
+                >
+                  {tag.name}
+                </button>
+              )}
+              <span className="shrink-0 text-xs text-[var(--text-faint)] tabular-nums">
+                {tag._count?.bookmarks ?? 0} bookmark{(tag._count?.bookmarks ?? 0) === 1 ? "" : "s"}
+              </span>
+              <button
+                onClick={() => remove(tag)}
+                disabled={busyId === tag.id}
+                className="shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded-md border border-[var(--border-strong)] text-[var(--text-muted)] hover:bg-red-950/50 hover:text-red-400 hover:border-red-900 disabled:opacity-50"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
   );
 }

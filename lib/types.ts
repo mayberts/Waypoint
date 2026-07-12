@@ -13,6 +13,7 @@ export interface CollectionDTO {
 export interface TagDTO {
   id: string;
   name: string;
+  _count?: { bookmarks: number };
 }
 
 export interface IconAssetDTO {
