@@ -14,7 +14,6 @@ import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkRow } from "./BookmarkRow";
 import { BookmarkMoodboard } from "./BookmarkMoodboard";
 import { BookmarkGridSkeleton } from "./BookmarkGridSkeleton";
-import { AddBookmarkModal } from "./AddBookmarkModal";
 import { BookmarkEditDrawer } from "./BookmarkEditDrawer";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { SortMenu } from "./SortMenu";
@@ -41,7 +40,7 @@ export function BookmarkGrid({
   /** Extra buttons rendered in the header, before the view switcher (e.g. "Save this search"). */
   extraActions?: React.ReactNode;
 }) {
-  const { collections, refreshCollections, appearance, bookmarksVersion } = useAppData();
+  const { collections, refreshCollections, appearance, bookmarksVersion, openQuickAdd, quickAddOpen } = useAppData();
   const collectionId = viewKey.startsWith(COLLECTION_VIEW_PREFIX) ? viewKey.slice(COLLECTION_VIEW_PREFIX.length) : null;
   const collectionRecord = collectionId ? collections.find((c) => c.id === collectionId) : null;
   const isSearchQuery = !!query.q;
@@ -68,7 +67,6 @@ export function BookmarkGrid({
     if (bookmarksVersion > 0) refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on the shared change signal, not on every `refresh` identity change
   }, [bookmarksVersion]);
-  const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<BookmarkDTO | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
@@ -137,11 +135,6 @@ export function BookmarkGrid({
     await refreshCollections();
   }
 
-  function handleCreated() {
-    refresh();
-    refreshCollections();
-  }
-
   function handleUpdated() {
     refresh();
     refreshCollections();
@@ -200,7 +193,7 @@ export function BookmarkGrid({
     }
 
     function onKeyDown(e: KeyboardEvent) {
-      if (adding || editing) return;
+      if (editing || quickAddOpen) return;
       if (isEditableTarget(e.target)) return;
 
       if (showShortcuts) {
@@ -248,7 +241,7 @@ export function BookmarkGrid({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- re-subscribes each render so the closure always sees current bookmarks/focus/selection; cheap for a single window listener
-  }, [bookmarks, focusedId, adding, editing, selected, showShortcuts]);
+  }, [bookmarks, focusedId, quickAddOpen, editing, selected, showShortcuts]);
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
@@ -277,7 +270,7 @@ export function BookmarkGrid({
           {!isSearchQuery && <SortMenu value={sort} onChange={handleSortChange} allowManual={allowManualSort} />}
           <ViewSwitcher value={view} onChange={handleViewChange} onApplyToAll={handleApplyToAll} />
           <button
-            onClick={() => setAdding(true)}
+            onClick={() => openQuickAdd(defaultCollectionId)}
             className="px-3 py-1.5 text-sm rounded-md bg-[var(--accent-strong)] text-white hover:bg-[var(--accent)] whitespace-nowrap"
           >
             + Add bookmark
@@ -349,14 +342,6 @@ export function BookmarkGrid({
           />
         )}
       </div>
-
-      {adding && (
-        <AddBookmarkModal
-          defaultCollectionId={defaultCollectionId}
-          onClose={() => setAdding(false)}
-          onCreated={handleCreated}
-        />
-      )}
 
       {editing && (
         <BookmarkEditDrawer

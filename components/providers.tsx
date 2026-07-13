@@ -42,6 +42,11 @@ interface AppData {
   /** Bumped whenever a bookmark moves outside of the currently-mounted grid's own actions (e.g. a sidebar drag-drop), so grids know to refetch. */
   bookmarksVersion: number;
   notifyBookmarksChanged: () => void;
+  /** A single quick-add modal shared by every "+ Add bookmark" button and the global "n" shortcut, rather than one instance per page. */
+  quickAddCollectionId: string | null;
+  quickAddOpen: boolean;
+  openQuickAdd: (collectionId?: string | null) => void;
+  closeQuickAdd: () => void;
 }
 
 const AppDataContext = createContext<AppData | null>(null);
@@ -75,6 +80,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [bookmarksVersion, setBookmarksVersion] = useState(0);
   const notifyBookmarksChanged = useCallback(() => setBookmarksVersion((v) => v + 1), []);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddCollectionId, setQuickAddCollectionId] = useState<string | null>(null);
+  const openQuickAdd = useCallback((collectionId: string | null = null) => {
+    setQuickAddCollectionId(collectionId);
+    setQuickAddOpen(true);
+  }, []);
+  const closeQuickAdd = useCallback(() => setQuickAddOpen(false), []);
 
   const refreshCollections = useCallback(async () => {
     setCollections(await api.get<CollectionDTO[]>("/api/collections"));
@@ -160,6 +172,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         setSidebarPrefs,
         bookmarksVersion,
         notifyBookmarksChanged,
+        quickAddCollectionId,
+        quickAddOpen,
+        openQuickAdd,
+        closeQuickAdd,
       }}
     >
       {children}

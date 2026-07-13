@@ -1,6 +1,7 @@
 "use client";
 
 const SHORTCUTS: { keys: string; label: string }[] = [
+  { keys: "n", label: "Add bookmark" },
   { keys: "j / ↓", label: "Focus next bookmark" },
   { keys: "k / ↑", label: "Focus previous bookmark" },
   { keys: "Enter / o", label: "Open focused bookmark" },

@@ -6,16 +6,30 @@ import { DndContext, DragEndEvent, PointerSensor, pointerWithin, useSensor, useS
 import { Sidebar } from "./Sidebar";
 import { Logo } from "./Logo";
 import { CommandPalette } from "./CommandPalette";
+import { AddBookmarkModal } from "./AddBookmarkModal";
 import { useAppData } from "./providers";
 import { api } from "@/lib/api-client";
 import { buildTree, flattenTree, descendantIds } from "@/lib/collection-tree";
 import { UNSORTED_DROP_ID, parseBookmarkDndId, parseCollectionDndId } from "@/lib/dnd-ids";
 
+function isEditableTarget(el: EventTarget | null): boolean {
+  if (!(el instanceof HTMLElement)) return false;
+  return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const { collections, refreshCollections, notifyBookmarksChanged } = useAppData();
+  const {
+    collections,
+    refreshCollections,
+    notifyBookmarksChanged,
+    quickAddOpen,
+    quickAddCollectionId,
+    openQuickAdd,
+    closeQuickAdd,
+  } = useAppData();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   useEffect(() => {
@@ -24,17 +38,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    // Ctrl+K everywhere — including Mac's Cmd+K under the hood, but the UI
-    // never shows the ⌘ symbol, only "Ctrl+K" text, per the user's request.
     function onKeyDown(e: KeyboardEvent) {
+      // Ctrl+K everywhere — including Mac's Cmd+K under the hood, but the UI
+      // never shows the ⌘ symbol, only "Ctrl+K" text, per the user's request.
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setPaletteOpen((v) => !v);
+        return;
+      }
+      // Bare "n" opens quick-add from anywhere in the app — guarded against
+      // typing in any text field (unlike Ctrl+K, a bare letter key collides
+      // with normal typing constantly) and against reopening on top of itself.
+      if (e.key === "n" && !e.ctrlKey && !e.metaKey && !e.altKey && !isEditableTarget(e.target)) {
+        if (paletteOpen || quickAddOpen) return;
+        e.preventDefault();
+        // Defaults to the collection currently being viewed (so pressing "n"
+        // while browsing a collection saves into it, not Unsorted) — the same
+        // rule the "+ Add bookmark" button on that page already follows.
+        openQuickAdd(pathname?.startsWith("/collection/") ? pathname.split("/")[2] : null);
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [paletteOpen, quickAddOpen, pathname, openQuickAdd]);
+
+  function handleQuickAdded() {
+    void refreshCollections();
+    notifyBookmarksChanged();
+  }
 
   // The sidebar's collection tree (drag-to-reorder/nest) and the bookmark
   // grid (drag-onto-a-collection) both need to see each other's drag
@@ -133,6 +164,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+
+        {quickAddOpen && (
+          <AddBookmarkModal
+            defaultCollectionId={quickAddCollectionId}
+            onClose={closeQuickAdd}
+            onCreated={handleQuickAdded}
+          />
+        )}
       </div>
     </DndContext>
   );
