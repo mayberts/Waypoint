@@ -60,6 +60,11 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
             Stats
           </SidebarLink>
         )}
+        {sidebarPrefs.showTags && (
+          <SidebarLink href="/tags" active={pathname === "/tags"} icon="#️⃣">
+            Tags
+          </SidebarLink>
+        )}
       </nav>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3">

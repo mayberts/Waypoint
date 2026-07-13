@@ -13,6 +13,7 @@ export interface BookmarkQuery {
   broken?: boolean;
   untagged?: boolean;
   since?: string;
+  tag?: string;
   /** Ignored for full-text search queries (q set) — those are always relevance-ranked. */
   sort?: SortMode;
 }
@@ -28,6 +29,7 @@ function buildUrl(query: BookmarkQuery): string {
   if (query.broken) params.set("broken", "true");
   if (query.untagged) params.set("untagged", "true");
   if (query.since) params.set("since", query.since);
+  if (query.tag) params.set("tag", query.tag);
   if (query.sort) params.set("sort", query.sort);
   return `/api/bookmarks?${params}`;
 }
@@ -44,7 +46,7 @@ export function useBookmarks(query: BookmarkQuery) {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.collectionId, query.unsorted, query.q, query.broken, query.untagged, query.since, query.sort]);
+  }, [query.collectionId, query.unsorted, query.q, query.broken, query.untagged, query.since, query.tag, query.sort]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount/query-change

@@ -4,6 +4,7 @@
 // devices or survive a account.
 export interface SidebarPrefs {
   showStats: boolean;
+  showTags: boolean;
   showSmartBroken: boolean;
   showSmartRecent: boolean;
   showSmartUntagged: boolean;
@@ -11,6 +12,7 @@ export interface SidebarPrefs {
 
 export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
   showStats: true,
+  showTags: true,
   showSmartBroken: true,
   showSmartRecent: true,
   showSmartUntagged: true,

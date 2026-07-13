@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
@@ -85,9 +86,13 @@ export function BookmarkRow({
       {!dense && bookmark.tags.length > 0 && (
         <div className="hidden sm:flex flex-wrap gap-1 shrink-0">
           {bookmark.tags.map((t) => (
-            <span key={t.id} className="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--surface-2)] text-[var(--text-muted)]">
+            <Link
+              key={t.id}
+              href={`/tag/${encodeURIComponent(t.name)}`}
+              className="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--surface-2)] text-[var(--text-muted)] hover:bg-[var(--surface-2-a60)] hover:text-[var(--text-secondary)]"
+            >
               {t.name}
-            </span>
+            </Link>
           ))}
         </div>
       )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
 import { Skeleton } from "@/components/Skeleton";
+import { TagCloud } from "@/components/TagCloud";
 import { useAppData } from "@/components/providers";
 
 interface StatsResponse {
@@ -83,7 +84,12 @@ export default function StatsPage() {
             />
           </div>
 
-          <TagCloud tags={topTags.map((t) => ({ name: t.name, count: t._count?.bookmarks ?? 0 }))} />
+          <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold text-[var(--text-secondary)]">Tag cloud</h2>
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-4">
+              <TagCloud tags={topTags.map((t) => ({ name: t.name, count: t._count?.bookmarks ?? 0 }))} />
+            </div>
+          </section>
         </>
       )}
     </div>
@@ -194,36 +200,3 @@ function RankedList({
   );
 }
 
-function TagCloud({ tags }: { tags: { name: string; count: number }[] }) {
-  const max = Math.max(1, ...tags.map((t) => t.count));
-
-  function tier(count: number): string {
-    const ratio = count / max;
-    if (ratio > 0.66) return "text-base font-semibold";
-    if (ratio > 0.33) return "text-sm font-medium";
-    return "text-xs";
-  }
-
-  return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-semibold text-[var(--text-secondary)]">Tag cloud</h2>
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-0)] p-4">
-        {tags.length === 0 ? (
-          <p className="text-xs text-[var(--text-faint)]">No tagged bookmarks yet.</p>
-        ) : (
-          <div className="flex flex-wrap gap-2 items-center">
-            {tags.map((t) => (
-              <span
-                key={t.name}
-                title={`${t.count} bookmark${t.count === 1 ? "" : "s"}`}
-                className={`px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-body)] ${tier(t.count)}`}
-              >
-                {t.name}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
