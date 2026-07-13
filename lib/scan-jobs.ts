@@ -95,6 +95,53 @@ export async function refreshCoversBatch(limit: number): Promise<{ processed: nu
   return { processed: targets.length, updated, remaining };
 }
 
+// Manual, single-bookmark force refetch — unlike the batch jobs above (which
+// only touch bookmarks with no favicon/cover yet), this always re-fetches
+// from the live URL, so it's the way to pick up an icon/cover that changed
+// or was fetched wrong the first time. One page fetch covers both images.
+export async function refetchBookmarkImages(
+  bookmarkId: string
+): Promise<{ faviconPath: string | null; coverImagePath: string | null; faviconFound: boolean; coverFound: boolean }> {
+  const bookmark = await prisma.bookmark.findUnique({
+    where: { id: bookmarkId },
+    select: { url: true, faviconPath: true, coverImagePath: true },
+  });
+  if (!bookmark) throw new Error("Bookmark not found");
+
+  let faviconPath = bookmark.faviconPath;
+  let coverImagePath = bookmark.coverImagePath;
+  let faviconFound = false;
+  let coverFound = false;
+
+  const meta = await fetchPageMetadata(bookmark.url);
+
+  if (meta.faviconUrl) {
+    try {
+      const buf = await downloadImage(meta.faviconUrl);
+      faviconPath = await saveImageBuffer(buf, MAX_FAVICON_BYTES);
+      faviconFound = true;
+    } catch {
+      // Favicon URL unreachable — leave whatever was there before in place.
+    }
+  }
+  if (meta.ogImageUrl) {
+    try {
+      const buf = await downloadImage(meta.ogImageUrl);
+      coverImagePath = await saveImageBuffer(buf, MAX_COVER_BYTES);
+      coverFound = true;
+    } catch {
+      // og:image URL unreachable — leave whatever was there before in place.
+    }
+  }
+
+  await prisma.bookmark.update({
+    where: { id: bookmarkId },
+    data: { faviconCheckedAt: new Date(), coverImageCheckedAt: new Date(), faviconPath, coverImagePath },
+  });
+
+  return { faviconPath, coverImagePath, faviconFound, coverFound };
+}
+
 // Bookmarks not yet (re-)checked since `since` — used both to report how much
 // of a scan is left and to select the next batch. Passing the scan's start
 // time (rather than just "checked === null") is what lets a full re-scan

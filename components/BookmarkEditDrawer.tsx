@@ -27,6 +27,7 @@ export function BookmarkEditDrawer({
   const [favicon, setFavicon] = useState(bookmark.faviconPath);
   const [cover, setCover] = useState(bookmark.coverImagePath);
   const [saving, setSaving] = useState(false);
+  const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const faviconInput = useRef<HTMLInputElement>(null);
   const coverInput = useRef<HTMLInputElement>(null);
@@ -57,6 +58,25 @@ export function BookmarkEditDrawer({
     await api.delete(`/api/bookmarks/${bookmark.id}`);
     onDeleted(bookmark.id);
     onClose();
+  }
+
+  async function refetchImages() {
+    setError(null);
+    setRefetching(true);
+    try {
+      const result = await api.post<{ faviconPath: string | null; coverImagePath: string | null; faviconFound: boolean; coverFound: boolean }>(
+        `/api/bookmarks/${bookmark.id}/refetch-images`
+      );
+      setFavicon(result.faviconPath);
+      setCover(result.coverImagePath);
+      if (!result.faviconFound && !result.coverFound) {
+        setError("Couldn't find a favicon or cover image on that page");
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to refetch images");
+    } finally {
+      setRefetching(false);
+    }
   }
 
   async function uploadImage(type: "favicon" | "cover", file: File) {
@@ -106,6 +126,17 @@ export function BookmarkEditDrawer({
             className="mt-1 w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
           />
         </div>
+
+        <button
+          type="button"
+          onClick={refetchImages}
+          disabled={refetching}
+          className="self-start flex items-center gap-1.5 text-xs text-[var(--text-faint)] hover:text-[var(--text-secondary)] disabled:opacity-50"
+          title="Re-fetch the favicon and cover image from the live URL"
+        >
+          <span className={refetching ? "animate-spin" : ""}>↻</span>
+          {refetching ? "Refetching…" : "Refetch favicon & cover from site"}
+        </button>
 
         <div>
           <label className="text-xs text-[var(--text-faint)]">Cover image</label>
