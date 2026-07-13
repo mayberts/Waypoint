@@ -9,6 +9,7 @@ import { useAppData } from "@/components/providers";
 import type { BookmarkDTO, IconAssetDTO, TagDTO } from "@/lib/types";
 import { ACCENT_COLORS, isHexColor } from "@/lib/accent-colors";
 import { GRID_PATTERN_OPTIONS, GRID_PATTERN_CATEGORIES } from "@/lib/grid-patterns";
+import { buildTree, flattenTree, isIconImagePath } from "@/lib/collection-tree";
 
 const TABS = [
   { id: "connect", label: "Connect" },
@@ -72,6 +73,7 @@ export default function SettingsPage() {
               <AppearanceSection />
               <DensitySection />
               <SidebarSection />
+              <DefaultLandingSection />
             </>
           )}
           {tab === "account" && <AccountSection />}
@@ -1080,6 +1082,79 @@ function SidebarSection() {
           </button>
         </div>
       ))}
+    </Card>
+  );
+}
+
+const LANDING_VIEW_OPTIONS = [
+  { value: "all", label: "All bookmarks" },
+  { value: "unsorted", label: "Unsorted" },
+  { value: "stats", label: "Stats" },
+  { value: "collection", label: "A specific collection" },
+] as const;
+
+function DefaultLandingSection() {
+  const { appearance, setAppearance, collections } = useAppData();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const collectionOptions = useMemo(() => flattenTree(buildTree(collections)), [collections]);
+
+  async function choose(view: string, collectionId: string | null) {
+    const previous = { defaultLandingView: appearance.defaultLandingView, defaultLandingCollectionId: appearance.defaultLandingCollectionId };
+    setSaving(true);
+    setError(null);
+    setAppearance({ defaultLandingView: view, defaultLandingCollectionId: collectionId });
+    try {
+      await api.patch("/api/settings/appearance", { defaultLandingView: view, defaultLandingCollectionId: collectionId });
+    } catch (err) {
+      setAppearance(previous);
+      setError(err instanceof ApiError ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card title="Default landing view">
+      <p className="text-xs text-[var(--text-faint)] pb-1">Choose what opens when you launch Waypoint.</p>
+      <div className="flex flex-col gap-2">
+        {LANDING_VIEW_OPTIONS.map((v) => (
+          <label key={v.value} className="flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="radio"
+              name="defaultLandingView"
+              checked={appearance.defaultLandingView === v.value}
+              disabled={saving}
+              onChange={() => choose(v.value, v.value === "collection" ? (appearance.defaultLandingCollectionId ?? collectionOptions[0]?.id ?? null) : null)}
+              className="accent-[var(--accent)]"
+            />
+            <span className="text-[var(--text-secondary)]">{v.label}</span>
+          </label>
+        ))}
+      </div>
+      {appearance.defaultLandingView === "collection" && (
+        <div className="pt-1">
+          {collectionOptions.length === 0 ? (
+            <p className="text-xs text-[var(--text-faint)]">Create a collection first to pick one here.</p>
+          ) : (
+            <select
+              value={appearance.defaultLandingCollectionId ?? ""}
+              disabled={saving}
+              onChange={(e) => choose("collection", e.target.value || null)}
+              className="w-full rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)]"
+            >
+              {collectionOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {"  ".repeat(c.depth)}
+                  {!isIconImagePath(c.icon) && c.icon ? `${c.icon} ` : ""}
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
   );
 }

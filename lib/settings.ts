@@ -9,9 +9,11 @@ import type { ScanSummary } from "./scan-jobs";
 // since the server has no way to know the visitor's OS preference.
 export const COLOR_SCHEMES = ["dark", "light", "auto"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
+export const LANDING_VIEWS = ["all", "unsorted", "stats", "collection"] as const;
 export type ColorScheme = (typeof COLOR_SCHEMES)[number];
 export type Density = (typeof DENSITIES)[number];
 export type GridPattern = string;
+export type LandingView = (typeof LANDING_VIEWS)[number];
 
 async function upsertSetting(field: "accentColor" | "colorScheme" | "density" | "gridPattern", value: string) {
   await prisma.settings.upsert({
@@ -99,6 +101,42 @@ export async function setGridPattern(value: string): Promise<GridPattern> {
   }
   await upsertSetting("gridPattern", value);
   return value as GridPattern;
+}
+
+export interface LandingSettings {
+  defaultLandingView: LandingView;
+  defaultLandingCollectionId: string | null;
+}
+
+export async function getLandingSettings(): Promise<LandingSettings> {
+  const existing = await prisma.settings.findUnique({ where: { id: 1 } });
+  return {
+    defaultLandingView: (existing?.defaultLandingView as LandingView) ?? "all",
+    defaultLandingCollectionId: existing?.defaultLandingCollectionId ?? null,
+  };
+}
+
+export async function setLandingSettings(view: string, collectionId: string | null): Promise<LandingSettings> {
+  if (!LANDING_VIEWS.includes(view as LandingView)) {
+    throw new Error("Unknown landing view");
+  }
+  if (view === "collection") {
+    if (!collectionId) throw new Error("A collection is required for this landing view");
+    const collection = await prisma.collection.findUnique({ where: { id: collectionId } });
+    if (!collection) throw new Error("Unknown collection");
+  }
+  const defaultLandingCollectionId = view === "collection" ? collectionId : null;
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { defaultLandingView: view, defaultLandingCollectionId },
+    create: {
+      id: 1,
+      apiToken: randomBytes(24).toString("base64url"),
+      defaultLandingView: view,
+      defaultLandingCollectionId,
+    },
+  });
+  return { defaultLandingView: view as LandingView, defaultLandingCollectionId };
 }
 
 export const AUTO_SCAN_INTERVALS_HOURS = [6, 12, 24, 72, 168] as const;

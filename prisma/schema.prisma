@@ -88,6 +88,8 @@ model Settings {
   colorScheme      String  @default("dark")
   density          String  @default("comfortable")
   gridPattern      String  @default("none")
+  defaultLandingView         String  @default("all") // "all" | "unsorted" | "stats" | "collection"
+  defaultLandingCollectionId String? // set when defaultLandingView = "collection"; not FK-enforced so a deleted collection just falls back to "all"
   authUsername     String?
   authPasswordHash String?
   sessionSecret    String?

@@ -8,16 +8,19 @@ import {
   setDensity,
   getGridPattern,
   setGridPattern,
+  getLandingSettings,
+  setLandingSettings,
 } from "@/lib/settings";
 
 export async function GET() {
-  const [accentColor, colorScheme, density, gridPattern] = await Promise.all([
+  const [accentColor, colorScheme, density, gridPattern, landing] = await Promise.all([
     getAccentColor(),
     getColorScheme(),
     getDensity(),
     getGridPattern(),
+    getLandingSettings(),
   ]);
-  return NextResponse.json({ accentColor, colorScheme, density, gridPattern });
+  return NextResponse.json({ accentColor, colorScheme, density, gridPattern, ...landing });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -27,11 +30,15 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const result: Record<string, string> = {};
+    const result: Record<string, unknown> = {};
     if (typeof body.accentColor === "string") result.accentColor = await setAccentColor(body.accentColor);
     if (typeof body.colorScheme === "string") result.colorScheme = await setColorScheme(body.colorScheme);
     if (typeof body.density === "string") result.density = await setDensity(body.density);
     if (typeof body.gridPattern === "string") result.gridPattern = await setGridPattern(body.gridPattern);
+    if (typeof body.defaultLandingView === "string") {
+      const collectionId = typeof body.defaultLandingCollectionId === "string" ? body.defaultLandingCollectionId : null;
+      Object.assign(result, await setLandingSettings(body.defaultLandingView, collectionId));
+    }
 
     if (Object.keys(result).length === 0) {
       return NextResponse.json({ error: "No recognized appearance fields in body" }, { status: 400 });

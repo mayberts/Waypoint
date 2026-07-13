@@ -12,6 +12,8 @@ interface AppearanceSettings {
   colorScheme: string;
   density: string;
   gridPattern: string;
+  defaultLandingView: string;
+  defaultLandingCollectionId: string | null;
 }
 
 const DEFAULT_APPEARANCE: AppearanceSettings = {
@@ -19,6 +21,8 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
   colorScheme: "dark",
   density: "comfortable",
   gridPattern: "none",
+  defaultLandingView: "all",
+  defaultLandingCollectionId: null,
 };
 
 interface AppData {
