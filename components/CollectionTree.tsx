@@ -241,6 +241,7 @@ function Row({
         {iconAnchor && (
           <IconPicker
             collectionId={node.id}
+            color={node.color}
             anchorRect={iconAnchor}
             onChanged={onIconChanged}
             onClose={() => setIconAnchor(null)}

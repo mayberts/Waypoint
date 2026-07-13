@@ -4,15 +4,19 @@ import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "@/lib/api-client";
 import type { CollectionDTO } from "@/lib/types";
+import { ACCENT_COLORS, isHexColor } from "@/lib/accent-colors";
 import { useAppData } from "./providers";
 
 export function IconPicker({
   collectionId,
+  color,
   anchorRect,
   onChanged,
   onClose,
 }: {
   collectionId: string;
+  /** Current banner color (preset value or custom hex, null = unset) — highlights the active swatch below the icon grid. */
+  color: string | null;
   anchorRect: { top: number; left: number; bottom: number };
   onChanged: (icon: string | null) => void;
   onClose: () => void;
@@ -60,6 +64,11 @@ export function IconPicker({
     const updated = await api.patch<CollectionDTO>(`/api/collections/${collectionId}`, { icon: null });
     onChanged(updated.icon);
     onClose();
+  }
+
+  async function pickColor(value: string | null) {
+    const updated = await api.patch<CollectionDTO>(`/api/collections/${collectionId}`, { color: value });
+    onChanged(updated.icon);
   }
 
   async function uploadFile(file: File) {
@@ -123,6 +132,53 @@ export function IconPicker({
             </div>
           ))}
           {noResults && <p className="px-1 py-4 text-center text-xs text-[var(--text-faint)]">No icons found.</p>}
+
+          <div className="mt-2 pt-2 border-t border-[var(--border-a70)]">
+            <div className="px-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-faint)]">
+              Banner color
+            </div>
+            <div className="flex flex-wrap gap-1.5 items-center px-1">
+              <button
+                onClick={() => pickColor(null)}
+                title="No banner color"
+                className="h-5 w-5 rounded-full border border-dashed border-[var(--border-strong)] flex items-center justify-center text-[10px] text-[var(--text-faint)]"
+                style={{ outline: color === null ? "2px solid var(--text-primary)" : "none", outlineOffset: "2px" }}
+              >
+                ×
+              </button>
+              {ACCENT_COLORS.map((c) => (
+                <button
+                  key={c.value}
+                  onClick={() => pickColor(c.value)}
+                  title={c.label}
+                  className="h-5 w-5 rounded-full"
+                  style={{
+                    backgroundColor: c.hex,
+                    outline: color === c.value ? "2px solid var(--text-primary)" : "none",
+                    outlineOffset: "2px",
+                  }}
+                />
+              ))}
+              <label
+                title="Custom color"
+                className="relative h-5 w-5 shrink-0 rounded-full cursor-pointer"
+                style={{
+                  background: color && isHexColor(color)
+                    ? color
+                    : "conic-gradient(from 0deg, #ef4444, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ef4444)",
+                  outline: color && isHexColor(color) ? "2px solid var(--text-primary)" : "none",
+                  outlineOffset: "2px",
+                }}
+              >
+                <input
+                  type="color"
+                  value={color && isHexColor(color) ? color : "#3b82f6"}
+                  onChange={(e) => pickColor(e.target.value)}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
+              </label>
+            </div>
+          </div>
         </div>
 
         {error && <p className="text-xs text-red-400 px-2.5 pt-2">{error}</p>}

@@ -21,6 +21,7 @@ import { SortMenu } from "./SortMenu";
 import { BulkActionBar } from "./BulkActionBar";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
 import { ShareCollectionButton } from "./ShareCollectionButton";
+import { CollectionHero } from "./CollectionHero";
 import { useAppData } from "./providers";
 
 const COLLECTION_VIEW_PREFIX = "collection:";
@@ -251,8 +252,18 @@ export function BookmarkGrid({
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
+      {collectionRecord && (
+        <CollectionHero
+          name={collectionRecord.name}
+          icon={collectionRecord.icon}
+          color={collectionRecord.color}
+          count={collectionRecord._count?.bookmarks ?? 0}
+        />
+      )}
       <div className="flex items-center justify-between gap-3 flex-wrap px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)] min-w-0 truncate">{title}</h1>
+        {collectionRecord ? <div className="min-w-0" /> : (
+          <h1 className="text-lg font-semibold text-[var(--text-primary)] min-w-0 truncate">{title}</h1>
+        )}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowShortcuts(true)}
