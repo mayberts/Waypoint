@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppDataProvider } from "@/components/providers";
@@ -18,7 +18,27 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Waypoint",
   description: "A self-hosted bookmark manager with collections and custom favicons.",
+  appleWebApp: {
+    capable: true,
+    title: "Waypoint",
+    statusBarStyle: "default",
+  },
 };
+
+// theme-color meta — colors the browser/OS chrome (installed-PWA title bar,
+// Android status bar) to match the sidebar (surface-0) in the active theme.
+export async function generateViewport(): Promise<Viewport> {
+  const scheme = await getColorScheme();
+  if (scheme === "auto") {
+    return {
+      themeColor: [
+        { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+        { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+      ],
+    };
+  }
+  return { themeColor: scheme === "light" ? "#fafafa" : "#0a0a0a" };
+}
 
 // The layout reads appearance settings from the database on every request
 // (to avoid a flash of the wrong theme/accent color); force-dynamic keeps

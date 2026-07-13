@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, getSessionSecret, verifySessionToken } from "@/lib/auth";
 
-const PUBLIC_PATHS = ["/login", "/icon"];
+// /manifest.webmanifest and the PWA icons must be public: browsers fetch the
+// manifest (and the icons it references) without sending cookies, so gating
+// them behind the session would break installability.
+const PUBLIC_PATHS = ["/login", "/icon", "/manifest.webmanifest", "/pwa-icon"];
 // /share/ and /api/share/ back the shareable-collection-link feature — the
 // slug itself is the credential. /uploads/ is opened up too, since favicon
 // and cover images referenced by a shared collection need to load for
 // visitors who never log in; filenames are content-hashed, not enumerable.
-const PUBLIC_PREFIXES = ["/api/auth/", "/api/extension/", "/_next/", "/share/", "/api/share/", "/uploads/"];
+const PUBLIC_PREFIXES = ["/api/auth/", "/api/extension/", "/_next/", "/share/", "/api/share/", "/uploads/", "/apple-icon"];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
