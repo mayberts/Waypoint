@@ -4,6 +4,7 @@
 #   echo <PAT_with_read:packages> | docker login ghcr.io -u <youruser> --password-stdin
 services:
   db:
+    container_name: waypoint-db
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: waypoint
@@ -19,6 +20,7 @@ services:
     restart: unless-stopped
 
   app:
+    container_name: waypoint
     image: ghcr.io/mayberts/waypoint:latest
     pull_policy: always
     environment:

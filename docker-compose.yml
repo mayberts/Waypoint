@@ -3,6 +3,7 @@
 #   docker compose up -d --build   ->  http://localhost:8745
 services:
   db:
+    container_name: waypoint-db
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: waypoint
@@ -18,6 +19,7 @@ services:
     restart: unless-stopped
 
   app:
+    container_name: waypoint
     build: .
     image: waypoint:latest
     environment:
