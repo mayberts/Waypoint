@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { serializeBookmark } from "@/lib/serialize";
+import { parseSearchQuery } from "@/lib/search-query";
 
 const SEARCH_EXPR = `to_tsvector('english', coalesce(title,'') || ' ' || coalesce(description,'') || ' ' || coalesce(url,'') || ' ' || coalesce(note,''))`;
 
@@ -32,7 +34,38 @@ export async function GET(req: NextRequest) {
 
   if (!q) return NextResponse.json({ error: "Missing q" }, { status: 400 });
 
-  const tsQuery = buildPrefixTsQuery(q);
+  const parsed = parseSearchQuery(q);
+
+  // tag:/site:/is: operators, layered on top of whatever the caller already
+  // filters by (a saved search's own collectionId/tag, if any).
+  const operatorWhere: Prisma.BookmarkWhereInput = {
+    ...(collectionId ? { collectionId } : {}),
+    ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
+    ...(parsed.tags.length > 0 ? { AND: parsed.tags.map((t) => ({ tags: { some: { tag: { name: t } } } })) } : {}),
+    // endsWith (not contains): "site:udemy.com" should catch "www.udemy.com"
+    // too, but "site:udemy.com" shouldn't match an unrelated domain that
+    // merely contains "udemy.com" partway through.
+    ...(parsed.sites.length > 0
+      ? { OR: parsed.sites.map((s) => ({ domain: { endsWith: s, mode: "insensitive" as const } })) }
+      : {}),
+    ...(parsed.favorite ? { isFavorite: true } : {}),
+    ...(parsed.broken ? { isBroken: true } : {}),
+    ...(parsed.untagged ? { tags: { none: {} } } : {}),
+  };
+
+  // A query that's operators only (e.g. "tag:recipes") has no text to rank
+  // by — just filter and show newest first, skipping the tsvector step.
+  if (!parsed.text) {
+    const bookmarks = await prisma.bookmark.findMany({
+      where: { deletedAt: null, ...operatorWhere },
+      include: { tags: { include: { tag: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+    return NextResponse.json(bookmarks.map(serializeBookmark));
+  }
+
+  const tsQuery = buildPrefixTsQuery(parsed.text);
   if (!tsQuery) return NextResponse.json([]);
 
   const ranked = await prisma.$queryRawUnsafe<{ id: string }[]>(
@@ -47,12 +80,7 @@ export async function GET(req: NextRequest) {
   if (ids.length === 0) return NextResponse.json([]);
 
   const bookmarks = await prisma.bookmark.findMany({
-    where: {
-      id: { in: ids },
-      deletedAt: null,
-      ...(collectionId ? { collectionId } : {}),
-      ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
-    },
+    where: { id: { in: ids }, deletedAt: null, ...operatorWhere },
     include: { tags: { include: { tag: true } } },
   });
 
