@@ -100,7 +100,15 @@ export async function safeFetch(url: string, init?: RequestInit, options?: SafeF
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "User-Agent": "Waypoint-Bot/1.0 (+self-hosted bookmark manager)",
+        // A self-identifying bot UA gets flat-out 403'd by Cloudflare and
+        // similar WAFs on plenty of otherwise-live sites (GitLab, Udemy,
+        // Claude.ai all do this) — every fetch here is either the user's own
+        // bookmark or metadata for a page they explicitly saved, not mass
+        // crawling, so identifying as an ordinary browser is the pragmatic
+        // choice. Won't help against JS-challenge/fingerprinting bot
+        // defenses, which no plain HTTP request can pass.
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         ...init?.headers,
       },
       // `dispatcher` is a Node/undici-specific fetch extension not present in
