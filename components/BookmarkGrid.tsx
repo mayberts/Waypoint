@@ -250,7 +250,7 @@ export function BookmarkGrid({
   }, [bookmarks, focusedId, quickAddOpen, editing, selected, showShortcuts]);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex-1 flex flex-col min-w-0" style={gridPatternStyle(appearance.gridPattern)}>
       {collectionRecord && (
         <CollectionHero
           name={collectionRecord.name}
@@ -287,11 +287,7 @@ export function BookmarkGrid({
         </div>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col sm:px-6 sm:pb-6"
-        style={gridPatternStyle(appearance.gridPattern)}
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col sm:px-6 sm:pb-6">
         <div className="flex-1">
           {loading ? (
             <BookmarkGridSkeleton view={view} />
