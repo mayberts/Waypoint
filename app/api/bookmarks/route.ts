@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
   const tag = searchParams.get("tag");
   const broken = searchParams.get("broken") === "true";
   const untagged = searchParams.get("untagged") === "true";
+  const favorite = searchParams.get("favorite") === "true";
   const since = searchParams.get("since");
   const sinceDate = since ? new Date(since) : null;
   // Viewing a parent collection includes bookmarks filed anywhere in its
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
       ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
       ...(broken ? { isBroken: true } : {}),
       ...(untagged ? { tags: { none: {} } } : {}),
+      ...(favorite ? { isFavorite: true } : {}),
       ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { createdAt: { gte: sinceDate } } : {}),
     },
     include: { tags: { include: { tag: true } } },

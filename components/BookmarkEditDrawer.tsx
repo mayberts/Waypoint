@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api-client";
 import type { BookmarkDTO } from "@/lib/types";
 import { CollectionSelect } from "./CollectionSelect";
 import { TagInput } from "./TagInput";
+import { FavoriteButton } from "./FavoriteButton";
 import { useAppData } from "./providers";
 
 export function BookmarkEditDrawer({
@@ -26,6 +27,7 @@ export function BookmarkEditDrawer({
   const [tags, setTags] = useState<string[]>(bookmark.tags.map((t) => t.name));
   const [favicon, setFavicon] = useState(bookmark.faviconPath);
   const [cover, setCover] = useState(bookmark.coverImagePath);
+  const [favorite, setFavorite] = useState(bookmark.isFavorite);
   const [saving, setSaving] = useState(false);
   const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,17 @@ export function BookmarkEditDrawer({
       setError(err instanceof ApiError ? err.message : "Failed to save");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function toggleFavorite() {
+    const next = !favorite;
+    setFavorite(next);
+    try {
+      await api.patch<BookmarkDTO>(`/api/bookmarks/${bookmark.id}`, { isFavorite: next });
+      onUpdated({ ...bookmark, isFavorite: next });
+    } catch {
+      setFavorite(!next);
     }
   }
 
@@ -101,9 +114,12 @@ export function BookmarkEditDrawer({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-[var(--text-secondary)]">Edit bookmark</h2>
-          <button onClick={onClose} className="text-[var(--text-faint)] hover:text-[var(--text-secondary)] text-lg leading-none">
-            ×
-          </button>
+          <div className="flex items-center gap-3">
+            <FavoriteButton active={favorite} onToggle={toggleFavorite} className="text-lg" />
+            <button onClick={onClose} className="text-[var(--text-faint)] hover:text-[var(--text-secondary)] text-lg leading-none">
+              ×
+            </button>
+          </div>
         </div>
 
         <div>

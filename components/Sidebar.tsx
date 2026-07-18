@@ -15,7 +15,8 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const { sidebarPrefs } = useAppData();
-  const anySmartShown = sidebarPrefs.showSmartBroken || sidebarPrefs.showSmartRecent || sidebarPrefs.showSmartUntagged;
+  const anySmartShown =
+    sidebarPrefs.showSmartFavorites || sidebarPrefs.showSmartBroken || sidebarPrefs.showSmartRecent || sidebarPrefs.showSmartUntagged;
 
   const collectionId = pathname?.startsWith("/collection/") ? pathname.split("/")[2] : undefined;
 
@@ -73,6 +74,11 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
             <div className="px-2 pt-3 pb-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Smart</span>
             </div>
+            {sidebarPrefs.showSmartFavorites && (
+              <SidebarLink href="/smart/favorites" active={pathname === "/smart/favorites"} icon="⭐">
+                Favorites
+              </SidebarLink>
+            )}
             {sidebarPrefs.showSmartBroken && (
               <SidebarLink href="/smart/broken" active={pathname === "/smart/broken"} icon="🔴">
                 Broken links

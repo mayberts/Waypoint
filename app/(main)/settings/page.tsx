@@ -1054,6 +1054,7 @@ function SidebarSection() {
   const toggles: { key: keyof typeof sidebarPrefs; label: string }[] = [
     { key: "showStats", label: "Stats" },
     { key: "showTags", label: "Tags" },
+    { key: "showSmartFavorites", label: "Favorites" },
     { key: "showSmartBroken", label: "Broken links" },
     { key: "showSmartRecent", label: "Added this week" },
     { key: "showSmartUntagged", label: "Untagged" },

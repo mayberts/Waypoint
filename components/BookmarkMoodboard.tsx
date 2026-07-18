@@ -6,16 +6,19 @@ import type { BookmarkDTO } from "@/lib/types";
 import { faviconFallbackColor } from "@/lib/favicon-color";
 import { bookmarkDndId } from "@/lib/dnd-ids";
 import { Favicon } from "./Favicon";
+import { FavoriteButton } from "./FavoriteButton";
 
 export function BookmarkMoodboard({
   bookmarks,
   onEdit,
+  onToggleFavorite,
   selected,
   onToggleSelect,
   focusedId = null,
 }: {
   bookmarks: BookmarkDTO[];
   onEdit: (bookmark: BookmarkDTO) => void;
+  onToggleFavorite: (bookmark: BookmarkDTO) => void;
   selected: Set<string>;
   onToggleSelect: (id: string) => void;
   focusedId?: string | null;
@@ -29,6 +32,7 @@ export function BookmarkMoodboard({
           selected={selected.has(b.id)}
           focused={b.id === focusedId}
           onEdit={() => onEdit(b)}
+          onToggleFavorite={() => onToggleFavorite(b)}
           onToggleSelect={() => onToggleSelect(b.id)}
         />
       ))}
@@ -41,12 +45,14 @@ function MoodboardItem({
   selected: isSelected,
   focused,
   onEdit,
+  onToggleFavorite,
   onToggleSelect,
 }: {
   bookmark: BookmarkDTO;
   selected: boolean;
   focused: boolean;
   onEdit: () => void;
+  onToggleFavorite: () => void;
   onToggleSelect: () => void;
 }) {
   const { listeners, setNodeRef: setDragRef, isDragging, transform } = useDraggable({ id: bookmarkDndId(b.id) });
@@ -107,12 +113,19 @@ function MoodboardItem({
               )}
             </div>
           </div>
-          <button
-            onClick={onEdit}
-            className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
-          >
-            Edit
-          </button>
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            <FavoriteButton
+              active={b.isFavorite}
+              onToggle={onToggleFavorite}
+              className="h-6 w-6 flex items-center justify-center rounded-md bg-[var(--surface-0-a80)] border border-[var(--border-strong)] text-sm"
+            />
+            <button
+              onClick={onEdit}
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
+            >
+              Edit
+            </button>
+          </div>
         </div>
       ) : (
         <div
@@ -146,12 +159,19 @@ function MoodboardItem({
               </span>
             )}
           </div>
-          <button
-            onClick={onEdit}
-            className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
-          >
-            Edit
-          </button>
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            <FavoriteButton
+              active={b.isFavorite}
+              onToggle={onToggleFavorite}
+              className="h-6 w-6 flex items-center justify-center rounded-md bg-[var(--surface-0-a80)] border border-[var(--border-strong)] text-sm"
+            />
+            <button
+              onClick={onEdit}
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
+            >
+              Edit
+            </button>
+          </div>
         </div>
       )}
     </div>

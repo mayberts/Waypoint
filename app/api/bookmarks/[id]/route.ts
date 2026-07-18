@@ -21,6 +21,7 @@ const updateSchema = z.object({
   note: z.string().trim().max(5000).nullable().optional(),
   collectionId: z.string().nullable().optional(),
   tags: z.array(z.string().trim().max(50)).max(50).optional(),
+  isFavorite: z.boolean().optional(),
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

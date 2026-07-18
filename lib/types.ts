@@ -47,6 +47,7 @@ export interface BookmarkDTO {
   deletedAt: string | null;
   isBroken: boolean;
   linkCheckedAt: string | null;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
   tags: TagDTO[];

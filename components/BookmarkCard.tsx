@@ -7,16 +7,19 @@ import type { BookmarkDTO } from "@/lib/types";
 import { faviconFallbackColor } from "@/lib/favicon-color";
 import { bookmarkDndId } from "@/lib/dnd-ids";
 import { Favicon } from "./Favicon";
+import { FavoriteButton } from "./FavoriteButton";
 
 export function BookmarkCard({
   bookmark,
   onEdit,
+  onToggleFavorite,
   selected,
   onToggleSelect,
   focused = false,
 }: {
   bookmark: BookmarkDTO;
   onEdit: () => void;
+  onToggleFavorite: () => void;
   selected: boolean;
   onToggleSelect: () => void;
   focused?: boolean;
@@ -113,12 +116,19 @@ export function BookmarkCard({
         )}
       </div>
 
-      <button
-        onClick={onEdit}
-        className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
-      >
-        Edit
-      </button>
+      <div className="absolute top-2 right-2 flex items-center gap-1">
+        <FavoriteButton
+          active={bookmark.isFavorite}
+          onToggle={onToggleFavorite}
+          className="h-6 w-6 flex items-center justify-center rounded-md bg-[var(--surface-0-a80)] border border-[var(--border-strong)] text-sm"
+        />
+        <button
+          onClick={onEdit}
+          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-[var(--surface-0-a80)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] text-xs px-2 py-1 rounded-md border border-[var(--border-strong)]"
+        >
+          Edit
+        </button>
+      </div>
     </div>
   );
 }

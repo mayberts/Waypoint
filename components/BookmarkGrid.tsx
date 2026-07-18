@@ -151,6 +151,23 @@ export function BookmarkGrid({
     refreshCollections();
   }
 
+  async function toggleFavorite(bookmark: BookmarkDTO) {
+    const next = !bookmark.isFavorite;
+    // On the Favorites smart view itself, un-favoriting should drop the card
+    // out of the list immediately rather than leave a stale "favorited" item
+    // sitting there until the next refetch.
+    if (!next && viewKey === "smart:favorites") {
+      setBookmarks((prev) => prev.filter((b) => b.id !== bookmark.id));
+    } else {
+      setBookmarks((prev) => prev.map((b) => (b.id === bookmark.id ? { ...b, isFavorite: next } : b)));
+    }
+    try {
+      await api.patch(`/api/bookmarks/${bookmark.id}`, { isFavorite: next });
+    } catch {
+      refresh();
+    }
+  }
+
   function toggleSelect(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -305,6 +322,7 @@ export function BookmarkGrid({
                       key={b.id}
                       bookmark={b}
                       onEdit={() => setEditing(b)}
+                      onToggleFavorite={() => toggleFavorite(b)}
                       selected={selected.has(b.id)}
                       onToggleSelect={() => toggleSelect(b.id)}
                       focused={b.id === focusedId}
@@ -315,6 +333,7 @@ export function BookmarkGrid({
                 <BookmarkMoodboard
                   bookmarks={bookmarks}
                   onEdit={setEditing}
+                  onToggleFavorite={toggleFavorite}
                   selected={selected}
                   onToggleSelect={toggleSelect}
                   focusedId={focusedId}
@@ -327,6 +346,7 @@ export function BookmarkGrid({
                       bookmark={b}
                       dense={view === "headlines"}
                       onEdit={() => setEditing(b)}
+                      onToggleFavorite={() => toggleFavorite(b)}
                       selected={selected.has(b.id)}
                       onToggleSelect={() => toggleSelect(b.id)}
                       focused={b.id === focusedId}

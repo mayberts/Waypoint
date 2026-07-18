@@ -5,6 +5,7 @@
 export interface SidebarPrefs {
   showStats: boolean;
   showTags: boolean;
+  showSmartFavorites: boolean;
   showSmartBroken: boolean;
   showSmartRecent: boolean;
   showSmartUntagged: boolean;
@@ -13,6 +14,7 @@ export interface SidebarPrefs {
 export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
   showStats: true,
   showTags: true,
+  showSmartFavorites: true,
   showSmartBroken: true,
   showSmartRecent: true,
   showSmartUntagged: true,

@@ -6,11 +6,13 @@ import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkDTO } from "@/lib/types";
 import { bookmarkDndId } from "@/lib/dnd-ids";
 import { Favicon } from "./Favicon";
+import { FavoriteButton } from "./FavoriteButton";
 
 export function BookmarkRow({
   bookmark,
   dense,
   onEdit,
+  onToggleFavorite,
   selected,
   onToggleSelect,
   focused = false,
@@ -18,6 +20,7 @@ export function BookmarkRow({
   bookmark: BookmarkDTO;
   dense: boolean;
   onEdit: () => void;
+  onToggleFavorite: () => void;
   selected: boolean;
   onToggleSelect: () => void;
   focused?: boolean;
@@ -98,6 +101,8 @@ export function BookmarkRow({
       )}
 
       <div className="flex-1" />
+
+      <FavoriteButton active={bookmark.isFavorite} onToggle={onToggleFavorite} className="shrink-0 text-base" />
 
       <button
         onClick={onEdit}
