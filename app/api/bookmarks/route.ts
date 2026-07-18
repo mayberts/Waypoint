@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { createBookmark, CollectionNotFoundError } from "@/lib/create-bookmark";
 import { serializeBookmark } from "@/lib/serialize";
+import { descendantCollectionIds } from "@/lib/collections-server";
 
 function orderByForSort(sort: string | null): Prisma.BookmarkOrderByWithRelationInput[] {
   switch (sort) {
@@ -33,11 +34,15 @@ export async function GET(req: NextRequest) {
   const untagged = searchParams.get("untagged") === "true";
   const since = searchParams.get("since");
   const sinceDate = since ? new Date(since) : null;
+  // Viewing a parent collection includes bookmarks filed anywhere in its
+  // subtree, not just ones filed directly on it — matches how the sidebar
+  // tree nests them visually.
+  const collectionIdsFilter = collectionId ? [collectionId, ...(await descendantCollectionIds(collectionId))] : null;
 
   const bookmarks = await prisma.bookmark.findMany({
     where: {
       deletedAt: null,
-      ...(unsorted ? { collectionId: null } : collectionId ? { collectionId } : {}),
+      ...(unsorted ? { collectionId: null } : collectionIdsFilter ? { collectionId: { in: collectionIdsFilter } } : {}),
       ...(tag ? { tags: { some: { tag: { name: tag.toLowerCase() } } } } : {}),
       ...(broken ? { isBroken: true } : {}),
       ...(untagged ? { tags: { none: {} } } : {}),

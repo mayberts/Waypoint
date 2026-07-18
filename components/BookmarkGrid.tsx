@@ -44,11 +44,16 @@ export function BookmarkGrid({
   const collectionId = viewKey.startsWith(COLLECTION_VIEW_PREFIX) ? viewKey.slice(COLLECTION_VIEW_PREFIX.length) : null;
   const collectionRecord = collectionId ? collections.find((c) => c.id === collectionId) : null;
   const isSearchQuery = !!query.q;
+  // A collection with subfolders shows bookmarks from all of them together
+  // (see the ?collectionId= handling in /api/bookmarks), so — same as "All
+  // bookmarks" or search — there's no longer one well-defined group for
+  // "manual" order to mean anything within.
+  const hasChildren = collectionId ? collections.some((c) => c.parentId === collectionId) : false;
   // Manual ordering only means something within one well-defined group of
-  // bookmarks — a single collection, or Unsorted. "All bookmarks", search
-  // results, and the smart collections span multiple groups (or aren't a
-  // real stored set at all), so there's no single coherent manual order.
-  const allowManualSort = !isSearchQuery && (!!collectionId || !!query.unsorted);
+  // bookmarks — a single childless collection, or Unsorted. "All bookmarks",
+  // search results, and the smart collections span multiple groups (or
+  // aren't a real stored set at all), so there's no single coherent manual order.
+  const allowManualSort = !isSearchQuery && !hasChildren && (!!collectionId || !!query.unsorted);
 
   const [localSort, setLocalSort] = useState<SortMode>("newest");
   const [optimisticSort, setOptimisticSort] = useState<SortMode | null>(null);
@@ -57,8 +62,9 @@ export function BookmarkGrid({
     setLocalSort(loadLocalSort(viewKey, allowManualSort ? "manual" : "newest"));
     setOptimisticSort(null);
   }, [viewKey, allowManualSort]);
-  const sort: SortMode =
+  const rawSort: SortMode =
     optimisticSort ?? (collectionId ? (isSortMode(collectionRecord?.sort) ? (collectionRecord!.sort as SortMode) : "manual") : localSort);
+  const sort: SortMode = hasChildren && rawSort === "manual" ? "newest" : rawSort;
 
   const { bookmarks, setBookmarks, loading, refresh } = useBookmarks(
     isSearchQuery ? query : { ...query, sort }
@@ -250,7 +256,10 @@ export function BookmarkGrid({
           name={collectionRecord.name}
           icon={collectionRecord.icon}
           color={collectionRecord.color}
-          count={collectionRecord._count?.bookmarks ?? 0}
+          // The actual fetched count (which includes subfolders), not the
+          // sidebar's direct-only count — falls back to that while loading
+          // so this doesn't flash "0 bookmarks" before the fetch resolves.
+          count={loading ? (collectionRecord._count?.bookmarks ?? 0) : bookmarks.length}
         />
       )}
       <div className="flex items-center justify-between gap-3 flex-wrap px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
