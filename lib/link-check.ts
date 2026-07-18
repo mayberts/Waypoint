@@ -1,5 +1,14 @@
 import { safeFetch } from "./safe-fetch";
 
+// A WAF/bot gate (Cloudflare and similar) rejecting an automated request
+// with 401/403/429 is far more often true of *this checker specifically*
+// than of the page actually being gone — a real visitor's browser loads it
+// fine. These status codes also key off TLS/HTTP fingerprinting a spoofed
+// User-Agent header can't fix, so treating them as "broken" would flag
+// plenty of perfectly live sites. Anything else non-2xx (404, 410, 5xx,
+// a network error) is trusted as genuinely broken.
+const AMBIGUOUS_STATUSES = new Set([401, 403, 429]);
+
 /** Checks whether a URL still resolves to a healthy (2xx) response, following redirects. */
 export async function checkLinkAlive(url: string): Promise<boolean> {
   // Private/LAN addresses and self-signed certificates are both allowed here
@@ -18,7 +27,7 @@ export async function checkLinkAlive(url: string): Promise<boolean> {
     // fine, so any non-2xx HEAD result gets one GET retry before giving up.
     const getRes = await safeFetch(url, { method: "GET" }, opts);
     await getRes.body?.cancel().catch(() => {});
-    return getRes.ok;
+    return getRes.ok || AMBIGUOUS_STATUSES.has(getRes.status);
   } catch {
     return false;
   }
