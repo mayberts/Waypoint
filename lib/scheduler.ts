@@ -1,5 +1,6 @@
-import { getAutoScanSettings, markAutoScanRan } from "./settings";
+import { getAutoScanSettings, markAutoScanRan, getTrashPurgeSettings, markTrashPurgeRan } from "./settings";
 import { runAllScans, type ScanSummary } from "./scan-jobs";
+import { purgeOldTrash } from "./trash-purge";
 
 // How often to check whether a scan is due. Deliberately much shorter than
 // any configurable scan interval — checking elapsed time since the last run
@@ -41,14 +42,28 @@ async function tick() {
   }
 }
 
+// Unlike the scan above (rate-limited external HTTP calls, so it only runs
+// once per configurable interval), a trash purge is just one local DELETE —
+// cheap enough to just check on every tick rather than tracking its own due
+// date, so trash never sits around for hours past its retention window.
+async function purgeTrashTick() {
+  const settings = await getTrashPurgeSettings();
+  if (!settings.trashAutoPurgeEnabled) return;
+  const count = await purgeOldTrash(settings.trashRetentionDays);
+  if (count > 0) console.log(`[scheduler] purged ${count} trashed bookmark(s) older than ${settings.trashRetentionDays} days`);
+  await markTrashPurgeRan(count);
+}
+
 export function startScheduler() {
   if (started) return;
   started = true;
   setInterval(() => {
     tick().catch((err) => console.error("[scheduler] tick failed:", err));
+    purgeTrashTick().catch((err) => console.error("[scheduler] trash purge tick failed:", err));
   }, TICK_MS);
   // Also check shortly after startup rather than waiting a full tick interval.
   setTimeout(() => {
     tick().catch((err) => console.error("[scheduler] initial tick failed:", err));
+    purgeTrashTick().catch((err) => console.error("[scheduler] initial trash purge tick failed:", err));
   }, 30_000);
 }

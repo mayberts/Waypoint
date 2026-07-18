@@ -10,6 +10,7 @@ import type { BookmarkDTO, IconAssetDTO, TagDTO } from "@/lib/types";
 import { ACCENT_COLORS, isHexColor } from "@/lib/accent-colors";
 import { GRID_PATTERN_OPTIONS, GRID_PATTERN_CATEGORIES } from "@/lib/grid-patterns";
 import { buildTree, flattenTree, isIconImagePath } from "@/lib/collection-tree";
+import { formatRelativeTime } from "@/lib/format-time";
 
 const TABS = [
   { id: "connect", label: "Connect" },
@@ -66,6 +67,7 @@ export default function SettingsPage() {
               <BrokenLinkSection />
               <DuplicatesSection />
               <TrashSection />
+              <TrashPurgeSection />
             </>
           )}
           {tab === "appearance" && (
@@ -244,17 +246,6 @@ const SCAN_INTERVAL_OPTIONS = [
   { hours: 72, label: "Every 3 days" },
   { hours: 168, label: "Weekly" },
 ];
-
-function formatRelativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const minutes = Math.round(diffMs / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  const days = Math.round(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"} ago`;
-}
 
 interface AutoScanSummary {
   faviconsFound: number;
@@ -1328,6 +1319,128 @@ function TrashSection() {
       >
         View trash{count !== null ? ` (${count})` : ""}
       </Link>
+    </Card>
+  );
+}
+
+const TRASH_RETENTION_OPTIONS = [
+  { days: 7, label: "7 days" },
+  { days: 14, label: "14 days" },
+  { days: 30, label: "30 days" },
+  { days: 60, label: "60 days" },
+  { days: 90, label: "90 days" },
+] as const;
+
+interface TrashPurgeState {
+  trashAutoPurgeEnabled: boolean;
+  trashRetentionDays: number;
+  lastTrashPurgeAt: string | null;
+  lastTrashPurgeCount: number | null;
+}
+
+function TrashPurgeSection() {
+  const [state, setState] = useState<TrashPurgeState | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [purging, setPurging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<TrashPurgeState>("/api/settings/trash-purge").then(setState);
+  }, []);
+
+  async function patch(update: Partial<Pick<TrashPurgeState, "trashAutoPurgeEnabled" | "trashRetentionDays">>) {
+    if (!state) return;
+    const previous = state;
+    setSaving(true);
+    setError(null);
+    setState({ ...state, ...update });
+    try {
+      await api.patch("/api/settings/trash-purge", update);
+    } catch (err) {
+      setState(previous);
+      setError(err instanceof ApiError ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function purgeNow() {
+    if (!state) return;
+    setPurging(true);
+    setError(null);
+    try {
+      const result = await api.post<{ purgedCount: number }>("/api/settings/trash-purge");
+      setState({ ...state, lastTrashPurgeAt: new Date().toISOString(), lastTrashPurgeCount: result.purgedCount });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to purge");
+    } finally {
+      setPurging(false);
+    }
+  }
+
+  return (
+    <Card title="Auto-purge trash">
+      <p>
+        Bookmarks sit in trash so they can be restored, but forever is a long time to keep something you meant to
+        delete. This permanently removes anything past the retention period below, checked continuously in the
+        background.
+      </p>
+
+      {!state ? (
+        <p className="text-xs text-[var(--text-faint)]">Loading…</p>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[var(--text-secondary)] font-medium">Enable auto-purge</p>
+              <p className="text-xs text-[var(--text-faint)]">
+                Last checked {state.lastTrashPurgeAt ? formatRelativeTime(state.lastTrashPurgeAt) : "never"}
+                {state.lastTrashPurgeCount ? ` — ${state.lastTrashPurgeCount} removed` : ""}
+              </p>
+            </div>
+            <button
+              onClick={() => patch({ trashAutoPurgeEnabled: !state.trashAutoPurgeEnabled })}
+              disabled={saving}
+              role="switch"
+              aria-checked={state.trashAutoPurgeEnabled}
+              className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+                state.trashAutoPurgeEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-2)]"
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                  state.trashAutoPurgeEnabled ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+            <p className="text-[var(--text-secondary)] font-medium">Keep trashed items for</p>
+            <select
+              value={state.trashRetentionDays}
+              onChange={(e) => patch({ trashRetentionDays: Number(e.target.value) })}
+              disabled={saving}
+              className="rounded-md bg-[var(--surface-1)] border border-[var(--border)] px-2.5 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--border-stronger)] disabled:opacity-50"
+            >
+              {TRASH_RETENTION_OPTIONS.map((o) => (
+                <option key={o.days} value={o.days}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={purgeNow}
+            disabled={purging}
+            className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+          >
+            {purging ? "Purging…" : "Purge old items now"}
+          </button>
+        </>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </Card>
   );
 }

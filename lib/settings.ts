@@ -195,6 +195,61 @@ export async function markAutoScanRan(summary: ScanSummary): Promise<void> {
   });
 }
 
+export const TRASH_RETENTION_DAYS_OPTIONS = [7, 14, 30, 60, 90] as const;
+export type TrashRetentionDays = (typeof TRASH_RETENTION_DAYS_OPTIONS)[number];
+
+export interface TrashPurgeSettings {
+  trashAutoPurgeEnabled: boolean;
+  trashRetentionDays: number;
+  lastTrashPurgeAt: Date | null;
+  lastTrashPurgeCount: number | null;
+}
+
+export async function getTrashPurgeSettings(): Promise<TrashPurgeSettings> {
+  const existing = await prisma.settings.findUnique({ where: { id: 1 } });
+  return {
+    trashAutoPurgeEnabled: existing?.trashAutoPurgeEnabled ?? true,
+    trashRetentionDays: existing?.trashRetentionDays ?? 30,
+    lastTrashPurgeAt: existing?.lastTrashPurgeAt ?? null,
+    lastTrashPurgeCount: existing?.lastTrashPurgeCount ?? null,
+  };
+}
+
+export async function setTrashAutoPurgeEnabled(value: boolean): Promise<boolean> {
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { trashAutoPurgeEnabled: value },
+    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), trashAutoPurgeEnabled: value },
+  });
+  return value;
+}
+
+export async function setTrashRetentionDays(value: number): Promise<number> {
+  if (!TRASH_RETENTION_DAYS_OPTIONS.includes(value as TrashRetentionDays)) {
+    throw new Error("Unknown retention period");
+  }
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { trashRetentionDays: value },
+    create: { id: 1, apiToken: randomBytes(24).toString("base64url"), trashRetentionDays: value },
+  });
+  return value;
+}
+
+/** Stamped after every purge attempt (scheduled or manual), even when nothing was old enough to remove. */
+export async function markTrashPurgeRan(count: number): Promise<void> {
+  await prisma.settings.upsert({
+    where: { id: 1 },
+    update: { lastTrashPurgeAt: new Date(), lastTrashPurgeCount: count },
+    create: {
+      id: 1,
+      apiToken: randomBytes(24).toString("base64url"),
+      lastTrashPurgeAt: new Date(),
+      lastTrashPurgeCount: count,
+    },
+  });
+}
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let mismatch = 0;

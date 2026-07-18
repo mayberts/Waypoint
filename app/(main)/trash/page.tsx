@@ -6,6 +6,7 @@ import type { BookmarkDTO } from "@/lib/types";
 import { Favicon } from "@/components/Favicon";
 import { Skeleton } from "@/components/Skeleton";
 import { useAppData } from "@/components/providers";
+import { formatRelativeTime } from "@/lib/format-time";
 
 export default function TrashPage() {
   const { refreshCollections } = useAppData();
@@ -100,6 +101,11 @@ export default function TrashPage() {
                 {b.domain && (
                   <span className="hidden shrink-0 text-xs text-[var(--text-faint)] truncate max-w-[200px] sm:block">
                     {b.domain}
+                  </span>
+                )}
+                {b.deletedAt && (
+                  <span className="hidden shrink-0 text-xs text-[var(--text-faint)] sm:block">
+                    Deleted {formatRelativeTime(b.deletedAt)}
                   </span>
                 )}
                 <div className="flex-1 basis-0 min-w-0 hidden sm:block" />

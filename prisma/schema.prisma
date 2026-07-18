@@ -98,6 +98,10 @@ model Settings {
   autoScanIntervalHours Int       @default(24)
   lastAutoScanAt        DateTime?
   lastAutoScanSummary   Json? // { faviconsFound, coversFound, linksChecked, brokenLinksFound, errors }, from the most recent scheduled run
+  trashAutoPurgeEnabled Boolean   @default(true)
+  trashRetentionDays    Int       @default(30)
+  lastTrashPurgeAt      DateTime?
+  lastTrashPurgeCount   Int? // how many bookmarks the most recent purge (scheduled or manual) permanently deleted
 }
 
 // User-uploaded icons for the collection icon picker, organized into
