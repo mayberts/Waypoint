@@ -62,6 +62,7 @@ export default function SettingsPage() {
               <AutoScanSection />
               <ImportSection />
               <ExportSection />
+              <BackupSection />
               <FaviconRefreshSection />
               <CoverRefreshSection />
               <BrokenLinkSection />
@@ -1272,6 +1273,91 @@ function ExportSection() {
       >
         Download export
       </a>
+    </Card>
+  );
+}
+
+interface RestoreResultShape {
+  collectionsRestored: number;
+  collectionsSkipped: number;
+  iconAssetsRestored: number;
+  iconAssetsSkipped: number;
+  bookmarksRestored: number;
+  bookmarksSkipped: number;
+  savedSearchesRestored: number;
+  savedSearchesSkipped: number;
+}
+
+function BackupSection() {
+  const { refreshCollections, refreshTags, refreshIconAssets, refreshSavedSearches } = useAppData();
+  const [restoring, setRestoring] = useState(false);
+  const [result, setResult] = useState<RestoreResultShape | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleFile(file: File) {
+    if (
+      !window.confirm(
+        "Restore from this backup? This adds collections, bookmarks, and settings from the file — nothing already here gets deleted, but any item whose id already exists is skipped."
+      )
+    ) {
+      return;
+    }
+    setRestoring(true);
+    setError(null);
+    setResult(null);
+    try {
+      const form = new FormData();
+      form.set("file", file);
+      const r = await api.upload<RestoreResultShape>("/api/settings/backup/restore", form);
+      setResult(r);
+      await Promise.all([refreshCollections(), refreshTags(), refreshIconAssets(), refreshSavedSearches()]);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Restore failed");
+    } finally {
+      setRestoring(false);
+    }
+  }
+
+  const skippedTotal = result
+    ? result.collectionsSkipped + result.iconAssetsSkipped + result.bookmarksSkipped + result.savedSearchesSkipped
+    : 0;
+
+  return (
+    <Card title="Full backup">
+      <p>
+        A complete, self-contained snapshot — every bookmark (including trash), collection, tag, note, custom icon,
+        and setting, with images embedded directly in the file. Unlike the Netscape export above, this round-trips
+        everything exactly, for disaster recovery or moving to a fresh instance.
+      </p>
+      <a
+        href="/api/settings/backup"
+        download
+        className="self-start px-2.5 py-1.5 text-xs rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)]"
+      >
+        Download full backup
+      </a>
+
+      <div className="pt-2 border-t border-[var(--border)] flex flex-col gap-2">
+        <label className="text-xs text-[var(--text-faint)]">Restore from a full backup file</label>
+        <input
+          type="file"
+          accept=".json,application/json"
+          disabled={restoring}
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+          className="text-xs"
+        />
+        {restoring && <p className="text-xs text-[var(--text-faint)]">Restoring…</p>}
+        {result && (
+          <p className="text-xs text-green-400">
+            Restored {result.collectionsRestored} collection{result.collectionsRestored === 1 ? "" : "s"},{" "}
+            {result.bookmarksRestored} bookmark{result.bookmarksRestored === 1 ? "" : "s"},{" "}
+            {result.iconAssetsRestored} icon{result.iconAssetsRestored === 1 ? "" : "s"}, and{" "}
+            {result.savedSearchesRestored} saved search{result.savedSearchesRestored === 1 ? "" : "es"}
+            {skippedTotal > 0 ? ` (skipped ${skippedTotal} that already existed)` : ""}.
+          </p>
+        )}
+        {error && <p className="text-xs text-red-400">{error}</p>}
+      </div>
     </Card>
   );
 }
