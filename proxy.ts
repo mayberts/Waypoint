@@ -31,7 +31,11 @@ export async function proxy(req: NextRequest) {
   }
 
   const loginUrl = new URL("/login", req.url);
-  if (pathname !== "/") loginUrl.searchParams.set("next", pathname);
+  // Include the query string, not just the path — /quick-save?url=... (the
+  // share-target landing page) is meaningless without it, so a share
+  // arriving while logged out would otherwise survive the login roundtrip
+  // with no URL left to save.
+  if (pathname !== "/") loginUrl.searchParams.set("next", pathname + req.nextUrl.search);
   return NextResponse.redirect(loginUrl);
 }
 

@@ -8,10 +8,54 @@ import { CollectionSelect } from "@/components/CollectionSelect";
 import { TagInput } from "@/components/TagInput";
 import { Logo } from "@/components/Logo";
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function extractUrlFromText(text: string): string | null {
+  const match = text.match(/https?:\/\/\S+/);
+  if (!match) return null;
+  // Trailing sentence punctuation ("... https://example.com.") isn't part of the URL.
+  const trimmed = match[0].replace(/[.,;:!?)\]]+$/, "");
+  return isHttpUrl(trimmed) ? trimmed : null;
+}
+
+// The share_target manifest entry maps the OS share sheet's fields to these
+// params, but not every app that shares a link puts it in `url` — plenty
+// (Twitter/X, Reddit, and others) bury it inside `text` instead, sometimes
+// alongside other text ("Check this out: https://...").
+function resolveSharedUrl(searchParams: URLSearchParams): string {
+  const direct = searchParams.get("url");
+  if (direct && isHttpUrl(direct)) return direct;
+  const text = searchParams.get("text");
+  const fromText = text ? extractUrlFromText(text) : null;
+  if (fromText) return fromText;
+  const title = searchParams.get("title");
+  const fromTitle = title ? extractUrlFromText(title) : null;
+  if (fromTitle) return fromTitle;
+  return direct ?? "";
+}
+
+function resolveDefaultTitle(searchParams: URLSearchParams, url: string): string {
+  const titleParam = searchParams.get("title");
+  if (titleParam && !isHttpUrl(titleParam)) return titleParam;
+  const text = searchParams.get("text");
+  if (!text) return "";
+  // Strip the URL back out of shared text like "Check this out: https://..."
+  // so it doesn't end up duplicated in both the preview line and the title field.
+  const stripped = text.replace(url, "").trim();
+  return stripped;
+}
+
 function QuickSaveForm() {
   const searchParams = useSearchParams();
-  const url = searchParams.get("url") ?? "";
-  const [title, setTitle] = useState(searchParams.get("title") ?? "");
+  const url = resolveSharedUrl(searchParams);
+  const [title, setTitle] = useState(resolveDefaultTitle(searchParams, url));
   const [collectionId, setCollectionId] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);

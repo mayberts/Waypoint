@@ -29,5 +29,14 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       { src: "/pwa-icon?size=192&maskable=1", sizes: "192x192", type: "image/png", purpose: "maskable" },
       { src: "/pwa-icon?size=512&maskable=1", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
+    // Lets Waypoint appear in the OS share sheet once installed — sharing a
+    // link from any other app (Safari, Twitter, Reddit, …) opens /quick-save
+    // prefilled, instead of needing to copy-paste the URL in by hand. GET is
+    // enough since we only ever receive text/url, never files.
+    share_target: {
+      action: "/quick-save",
+      method: "GET",
+      params: { title: "title", text: "text", url: "url" },
+    },
   };
 }
